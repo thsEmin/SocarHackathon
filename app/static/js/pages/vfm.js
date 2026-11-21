@@ -1,5 +1,5 @@
 (function () {
-  let d = null, hd = null, r0 = null, r1 = null, valSplit = "B";
+  let d = null, hd = null, r0 = null, r1 = null;
   const $ = id => document.getElementById(id);
   const T = ["oil_rate_stbd", "water_rate_stbd", "gas_rate_mscfd"];
   const NAMES = { oil_rate_stbd: "oil", water_rate_stbd: "water", gas_rate_mscfd: "gas" };
@@ -56,34 +56,6 @@
       el.on("plotly_click", ev => { const x = ev.points && ev.points[0] && String(ev.points[0].x).slice(0, 10); if (x) loadHourly(x); });
     }
 
-    // validation table
-    const rows = d.validation;
-    const mkey = m => m.includes("well average") ? "avg" : m.includes("line between") ? "line" : m.includes("trend only") ? "trend" : m.startsWith("v1") ? "v1" : "v2";
-    const pc = v => `${PN.fmt(v, 2)} %`;
-    const mean = r => (r.oil_rate_stbd + r.water_rate_stbd + r.gas_rate_mscfd) / 3;
-    const drawVal = () => {
-      const grp = rows.filter(r => r.split.slice(0, 1) === valSplit).sort((a, b) => mean(a) - mean(b));
-      $("val-table").innerHTML = `<tr><th>${PN.t("model")}</th><th class="n">${PN.t("oil")}</th><th class="n">${PN.t("water")}</th><th class="n">${PN.t("gas")}</th></tr>`
-        + grp.map(r => { const k = mkey(r.model); return `<tr class="${r.model.includes("FINAL") ? "hl" : ""}" title="${PN.t("vd_" + k)}"><td>${PN.t("vm_" + k)}${r.model.includes("FINAL") ? " ★" : ""}</td>
-          <td class="n">${pc(r.oil_rate_stbd)}</td><td class="n">${pc(r.water_rate_stbd)}</td><td class="n">${pc(r.gas_rate_mscfd)}</td></tr>`; }).join("");
-      document.querySelectorAll("#val-split button").forEach(bt => bt.classList.toggle("on", bt.dataset.s === valSplit));
-    };
-    document.querySelectorAll("#val-split button").forEach(bt => bt.onclick = () => { valSplit = bt.dataset.s; drawVal(); });
-    drawVal();
-    $("val-src").textContent = PN.t(PN.state.ds === "preloaded" ? "val_src_pre" : "val_src_up");
-    $("val-how").innerHTML = `<details><summary>${PN.t("val_how_t")}</summary><ul style="margin:8px 0 0;padding-left:18px;display:grid;gap:6px;font-size:13px;color:var(--text-2)">`
-      + [1, 2, 3, 4, 5, 6].map(i => `<li>${PN.t("val_how" + i)}</li>`).join("") + `</ul></details>`;
-
-    // physics: lift-cut response v1 vs v2
-    const wells = Object.keys(d.diag.liftcut_v2).sort();
-    PN.plot($("liftcut-chart"), [
-      { x: wells, y: wells.map(w => d.diag.liftcut_v1[w]), name: PN.t("v1"), type: "bar", marker: { color: c.muted } },
-      { x: wells, y: wells.map(w => d.diag.liftcut_v2[w]), name: PN.t("v2"), type: "bar", marker: { color: c.accent } },
-    ], { barmode: "group", yaxis: { title: { text: "%" }, zeroline: true, zerolinecolor: c.line }, margin: { t: 30, b: 30 }, hovermode: "x" });
-    $("normal-kv").innerHTML = `<div class="k">${PN.t("liftcut_note")}</div><div class="v"></div>
-      <div class="k">${PN.t("normal_vs_test")} · ${PN.t("v1")}</div><div class="v">${PN.signed(d.diag.normal_v1, 2)} %</div>
-      <div class="k">${PN.t("normal_vs_test")} · ${PN.t("v2")}</div><div class="v" style="color:var(--accent-ink)">${PN.signed(d.diag.normal_v2, 2)} %</div>
-      <div class="k dim">${PN.t("normal_note")}</div><div class="v"></div>`;
     renderHourly();
   }
 

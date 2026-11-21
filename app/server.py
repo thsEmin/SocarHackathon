@@ -86,6 +86,10 @@ def create_app():
         d = ds()
         return jsonify(views.vfm(d, well_arg(d)))
 
+    @app.get("/api/model")
+    def api_model():
+        return jsonify(views.model_checks())
+
     @app.get("/api/vfm/hourly")
     def api_vfm_hourly():
         d = ds()
