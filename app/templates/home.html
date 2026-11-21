@@ -114,7 +114,37 @@
   </div>
 </section>
 
-<!-- 6 · call to action -->
+<!-- 6 · model results: validation (one exam) + physics checks -->
+<section class="model" id="model">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow br" data-i18n="h_acc_eyebrow"></div>
+      <h2 class="h2" data-i18n="h_acc_title"></h2>
+      <p class="sec-sub" data-i18n="h_acc_sub"></p>
+    </div>
+    <div class="acc-grid">
+      <div class="acc reveal" style="--nc:var(--sage)"><div class="tag"><span class="sq"></span><span data-i18n="oil"></span> · <span data-i18n="h_acc_err"></span></div><div class="big"><span id="acc-oil">—</span><small>%</small></div></div>
+      <div class="acc reveal" style="--nc:#6FB4FF"><div class="tag"><span class="sq"></span><span data-i18n="water"></span> · <span data-i18n="h_acc_err"></span></div><div class="big"><span id="acc-water">—</span><small>%</small></div></div>
+      <div class="acc reveal" style="--nc:var(--coral)"><div class="tag"><span class="sq"></span><span data-i18n="gas"></span> · <span data-i18n="h_acc_err"></span></div><div class="big"><span id="acc-gas">—</span><small>%</small></div></div>
+    </div>
+    <div class="model-grid">
+      <div class="panel reveal">
+        <div class="panel-h"><h3 data-i18n="validation"></h3><span data-i18n="validation_sub"></span></div>
+        <div class="exam"><span class="sq"></span><span data-i18n="h_acc_exam"></span></div>
+        <table class="vt" id="val-table"></table>
+        <div class="how" id="val-how"></div>
+      </div>
+      <div class="panel reveal">
+        <div class="panel-h"><h3 data-i18n="physics"></h3><span data-i18n="physics_sub"></span></div>
+        <div class="exam"><span class="sq"></span><span data-i18n="liftcut"></span></div>
+        <div id="liftcut-chart" style="height:280px"></div>
+        <div class="pk" id="normal-kv"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · call to action -->
 <section class="cta">
   <div class="wrap"><div class="cta-in reveal">
     <h2 class="h2" data-i18n="h_cta_title"></h2>

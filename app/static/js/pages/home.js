@@ -350,7 +350,39 @@
     PN.countUp($("n-flag"), NUM.flag, 0, 900); PN.countUp($("n-perm"), NUM.perm, 0, 1400);
   }
 
+  // ---- model results: validation table (one exam) + physics checks, styled for the dark page
+  let M = null;
+  const mkey = m => m.includes("well average") ? "avg" : m.includes("line between") ? "line" : m.includes("trend only") ? "trend" : m.startsWith("v1") ? "v1" : "v2";
+  function renderModel() {
+    if (!M) return;
+    const rows = M.validation.slice(), mean = r => (r.oil_rate_stbd + r.water_rate_stbd + r.gas_rate_mscfd) / 3;
+    rows.sort((a, b) => mean(a) - mean(b));
+    const fin = rows.find(r => r.model.includes("FINAL"));
+    if (fin) { $("acc-oil").textContent = PN.fmt(fin.oil_rate_stbd, 2); $("acc-water").textContent = PN.fmt(fin.water_rate_stbd, 2); $("acc-gas").textContent = PN.fmt(fin.gas_rate_mscfd, 2); }
+    const pc = v => `${PN.fmt(v, 2)} %`;
+    $("val-table").innerHTML = `<tr><th>${PN.t("model")}</th><th class="n">${PN.t("oil")}</th><th class="n">${PN.t("water")}</th><th class="n">${PN.t("gas")}</th></tr>`
+      + rows.map(r => { const k = mkey(r.model), f = r.model.includes("FINAL");
+        return `<tr class="${f ? "hl" : ""}" title="${PN.t("vd_" + k)}"><td>${PN.t("vm_" + k)}${f ? " ★" : ""}</td>`
+          + `<td class="n">${pc(r.oil_rate_stbd)}</td><td class="n">${pc(r.water_rate_stbd)}</td><td class="n">${pc(r.gas_rate_mscfd)}</td></tr>`; }).join("");
+    $("val-how").innerHTML = `<details><summary>${PN.t("val_how_t")}</summary><ul>`
+      + [1, 2, 3, 4, 5, 6].map(i => `<li>${PN.t("val_how" + i)}</li>`).join("") + `</ul></details>`;
+
+    const g = M.diag, wells = Object.keys(g.liftcut_v2).sort(), txt = "rgba(251,239,227,.72)", grid = "rgba(255,190,140,.10)";
+    PN.plot($("liftcut-chart"), [
+      { x: wells, y: wells.map(w => g.liftcut_v1[w]), name: PN.t("v1"), type: "bar", marker: { color: "rgba(235,215,180,.45)" } },
+      { x: wells, y: wells.map(w => g.liftcut_v2[w]), name: PN.t("v2"), type: "bar", marker: { color: "#FFA43A" } },
+    ], { barmode: "group", font: { color: txt }, legend: { font: { color: txt } }, hovermode: "x", margin: { t: 34, b: 34, l: 46, r: 10 },
+         xaxis: { gridcolor: grid, linecolor: grid, tickcolor: grid, fixedrange: true },
+         yaxis: { title: { text: "%" }, gridcolor: grid, linecolor: grid, tickcolor: grid, zeroline: true, zerolinecolor: "rgba(255,236,220,.35)", fixedrange: true } },
+       { displayModeBar: false });
+    $("normal-kv").innerHTML = `<div>${PN.t("liftcut_note")}</div><div class="v"></div>
+      <div>${PN.t("normal_vs_test")} · ${PN.t("v1")}</div><div class="v">${PN.signed(g.normal_v1, 2)} %</div>
+      <div>${PN.t("normal_vs_test")} · ${PN.t("v2")}</div><div class="v good">${PN.signed(g.normal_v2, 2)} %</div>
+      <div class="note">${PN.t("normal_note")}</div><div class="v"></div>`;
+  }
+
   async function load() {
+    PN.api("/api/model").then(m => { M = m; renderModel(); }).catch(() => { /* section stays with dashes */ });
     const ds = PN.state.datasets.find(d => d.id === PN.state.ds);
     if (ds) {
       $("f-wells").textContent = ds.wells.length;
@@ -385,7 +417,7 @@
 
   PN.start({
     load,
-    render() { active = -1; onScroll(); },
+    render() { active = -1; onScroll(); renderModel(); },
   });
   onScroll();
   requestAnimationFrame(frame);

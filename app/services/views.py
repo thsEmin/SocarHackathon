@@ -27,6 +27,26 @@ def sensors(ds, well, step="15min"):
             "tests": [{"start": a.isoformat(), "end": b.isoformat()} for a, b in zip(tw.test_start, tw.test_end)]}
 
 
+VAL_SPLIT = "B"   # the exam we report: each well's last 2 tests hidden (forward prediction, the harder one)
+
+
+def validation():
+    """MAPE % per model on the reported exam (oil, water, gas), from the training-side validation table."""
+    v = store.shared()["validation"]
+    v = v[v.split.str.startswith(VAL_SPLIT)]
+    piv = v.pivot_table(index="model", columns="target", values="MAPE_%", sort=False).reset_index()
+    return piv.round(2).to_dict(orient="records")
+
+
+def model_checks():
+    """Home page "model results": validation table (one exam) + physics checks of v1 vs v2."""
+    d = store.shared()["diag"]
+    return {"validation": validation(),
+            "diag": {"lambda": d["lambda_learned_from_tests"],
+                     "liftcut_v1": d["liftcut_oil_change_pct_v1"], "liftcut_v2": d["liftcut_oil_change_pct_v2"],
+                     "normal_v1": d["normal_days_vs_test_pct_v1"], "normal_v2": d["normal_days_vs_test_pct_v2"]}}
+
+
 def vfm(ds, well):
     s = store.shared()
     p = ds.preds[ds.preds.well_name == well].sort_values("date")
@@ -34,14 +54,11 @@ def vfm(ds, well):
     tw = tests[(tests.well_name == well) & (tests.test_start >= p.date.min()) &
                (tests.test_start <= p.date.max() + pd.Timedelta(days=1))]
     mid = tw.test_start + (tw.test_end - tw.test_start) / 2
-    v = s["validation"]
-    piv = v.pivot_table(index=["split", "model"], columns="target", values="MAPE_%", sort=False).reset_index()
     d = s["diag"]
     return {"well": well, "t": [str(x.date()) for x in p.date], **{k: _r(p[k].values, 1) for k in T},
             "flags": [("shut" if sf == 1 else "partial" if sf > 0 else "nodata" if nd else "low" if lc else "")
                       for sf, nd, lc in zip(p.shut_frac.fillna(0), p.no_data, p.low_coverage)],
             "tests": {"t": [x.isoformat() for x in mid], **{k: _r(tw[k].values, 1) for k in T}},
-            "validation": piv.round(2).to_dict(orient="records"),
             "diag": {"lambda": d["lambda_learned_from_tests"],
                      "liftcut_v1": d["liftcut_oil_change_pct_v1"], "liftcut_v2": d["liftcut_oil_change_pct_v2"],
                      "normal_v1": d["normal_days_vs_test_pct_v1"], "normal_v2": d["normal_days_vs_test_pct_v2"]},
