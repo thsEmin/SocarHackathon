@@ -123,6 +123,46 @@ if j["status"] == "done":
     up = {e: c.get(f"{e}{'&' if '?' in e else '?'}ds={j['dataset']}").status_code
           for e in ["/api/problems", "/api/overview", "/api/vfm/hourly?well=GL-01&date=" + str(sub.timestamp.min())[:10]]}
     check("APP: problems, overview and hourly view work on uploaded data", all(v == 200 for v in up.values()), str(up))
+def upload(df, name="t.csv"):
+    jid = c.post("/api/upload", data={"hf": (io.BytesIO(df.to_csv(index=False).encode()), name)},
+                 content_type="multipart/form-data").get_json()["job"]
+    for _ in range(600):
+        jj = c.get(f"/api/upload/{jid}").get_json()
+        if jj["status"] in ("done", "error"):
+            return jj
+        time.sleep(0.5)
+    return jj
+
+
+# regression: an upload that starts on the shut-in day has no producing day before it -> no crash,
+# the event is marked unavailable with a clear reason, VFM still works
+demo = pd.read_csv(ROOT / "samples" / "demo_GL01_GL10_Apr-May2025.csv")
+ts = pd.to_datetime(demo.timestamp, format="mixed")
+cut = demo[(demo.well_name == "GL-01") & (ts >= "2025-04-15") & (ts < "2025-04-20")]
+jc = upload(cut)
+if jc["status"] == "done":
+    q = f"?ds={jc['dataset']}"
+    eps2 = ["/api/pta/events" + q, "/api/pta/skipped" + q, "/api/vfm?well=GL-01&ds=" + jc["dataset"],
+            "/api/well?well=GL-01&ds=" + jc["dataset"], "/api/overview" + q, "/api/problems" + q]
+    rs = {e: c.get(e) for e in eps2}
+    sk = rs[eps2[1]].get_json()
+    exp = c.get(f"/api/export/pta{q}")
+    check("APP: upload starting on a shut-in day -> no 500, event marked 'no producing day', VFM still works",
+          all(r.status_code == 200 for r in rs.values()) and rs[eps2[0]].get_json() == []
+          and len(sk) >= 1 and sk[0]["code"] == "no_producing_day" and exp.status_code == 400
+          and "producing day" in exp.get_json()["error"] and jc.get("pta_ok") == 0,
+          f"{ {k.split('?')[0]: r.status_code for k, r in rs.items()} } export={exp.status_code} skipped={sk}")
+else:
+    check("APP: upload starting on a shut-in day -> no 500", False, jc.get("error"))
+
+# the recommended demo sample still gives both PTA results (GL-01 ~107.8 mD, skin ~+5.7)
+jd = upload(demo, "demo.csv")
+evd = c.get(f"/api/pta/events?ds={jd.get('dataset')}").get_json() if jd["status"] == "done" else []
+g1 = [e for e in evd if e["well_name"] == "GL-01"]
+check("APP: demo sample -> 2 PTA results, GL-01 k ~107.8 mD and skin ~+5.7",
+      len(evd) == 2 and bool(g1) and abs(g1[0]["permeability_md"] - 107.8) < 1 and abs(g1[0]["skin"] - 5.7) < 0.2,
+      str([(e["well_name"], round(e["permeability_md"], 1), round(e["skin"], 2)) for e in evd]))
+
 bad = c.post("/api/upload", data={"hf": (io.BytesIO(b"a,b\n1,2\n"), "bad.csv")}, content_type="multipart/form-data").get_json()["job"]
 for _ in range(40):
     jb = c.get(f"/api/upload/{bad}").get_json()
@@ -130,6 +170,27 @@ for _ in range(40):
         break
     time.sleep(0.25)
 check("APP: wrong upload file gives a clear error", jb["status"] == "error" and "missing columns" in jb["error"], jb.get("error"))
+
+# regression: odd inputs answer with a clear 4xx (never a 500); what-if stays inside the slider range
+odd = {u: c.get(u).status_code for u in ["/api/vfm/hourly?well=GL-01&date=", "/api/vfm/hourly?well=GL-01&date=xyz"]}
+wi_big = c.get("/api/whatif?well=GL-01&choke=1e9&lift=1e9").get_json()
+wi_max = c.get("/api/whatif?well=GL-01&choke=10&lift=50").get_json()
+wi_nan = c.get("/api/whatif?well=GL-01&choke=nan&lift=inf").get_json()
+check("APP: empty/invalid hourly date -> 400; what-if clamps huge and NaN inputs",
+      all(v == 400 for v in odd.values()) and abs(wi_big["factor"] - wi_max["factor"]) < 1e-9 and wi_nan["factor"] == 1.0,
+      f"{odd} big={wi_big['factor']} max={wi_max['factor']} nan={wi_nan['factor']}")
+
+# regression: an upload where the only well is shut in the whole time -> loads, and every page answers
+shut_only = demo[(demo.well_name == "GL-01") & (ts >= "2025-04-15 09:00") & (ts < "2025-04-17")]
+js = upload(shut_only, "shut_only.csv")
+codes = {}
+if js["status"] == "done":
+    qq = "ds=" + js["dataset"]
+    codes = {e: c.get(f"{e}{'&' if '?' in e else '?'}{qq}").status_code
+             for e in ["/api/overview", "/api/problems", "/api/pta/events", "/api/vfm?well=GL-01",
+                       "/api/well?well=GL-01", "/api/whatif?well=GL-01", "/api/sensors?well=GL-01"]}
+check("APP: upload of a well shut in the whole time -> loads, no 500 on any page",
+      js["status"] == "done" and all(v < 500 for v in codes.values()), f"{js.get('error')} {codes}")
 
 print(f"\n{sum(results)}/{len(results)} app checks passed")
 sys.exit(0 if all(results) else 1)

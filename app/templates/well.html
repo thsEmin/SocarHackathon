@@ -7,7 +7,7 @@
   </div>
   <div class="row" style="gap:var(--gap);align-content:start">
     <div class="row cols-3">
-      <div class="card kpi oil"><div class="label" data-i18n="oil"></div><div class="value"><span id="w-oil">—</span><span class="unit" data-i18n="stbd"></span></div></div>
+      <div class="card kpi oil"><div class="label" data-i18n="oil"></div><div class="value"><span id="w-oil">—</span><span class="unit" data-i18n="stbd_oil"></span></div></div>
       <div class="card kpi water"><div class="label" data-i18n="water"></div><div class="value"><span id="w-water">—</span><span class="unit" data-i18n="stbd"></span></div></div>
       <div class="card kpi gas"><div class="label" data-i18n="gas"></div><div class="value"><span id="w-gas">—</span><span class="unit" data-i18n="mscfd"></span></div></div>
     </div>
@@ -17,6 +17,15 @@
       <div class="card"><div class="card-h"><h3 data-i18n="reservoir"></h3></div><div class="kv" id="w-pvt"></div></div>
     </div>
   </div>
+</section>
+
+<!-- the dataset this well's numbers come from, and how it was cleaned (moved here from Import) -->
+<section class="card">
+  <div class="card-h"><h3 data-i18n="current_ds"></h3><div class="right"><span class="badge accent" id="ds-src"></span></div></div>
+  <div id="ds-label" style="font-weight:600;font-size:15px;margin-bottom:14px"></div>
+  <div class="row cols-4 stats" id="ds-stats"></div>
+  <div class="card-h" style="margin:22px 0 10px"><h3 data-i18n="cleaning"></h3></div>
+  <div class="row cols-4 stats" id="clean-stats"></div>
 </section>
 {% endblock %}
 {% block scripts %}<script src="{{ url_for('static', filename='js/pages/well.js') }}"></script>{% endblock %}

@@ -3,7 +3,7 @@
   const $ = id => document.getElementById(id);
   const T = ["oil_rate_stbd", "water_rate_stbd", "gas_rate_mscfd"];
   const NAMES = { oil_rate_stbd: "oil", water_rate_stbd: "water", gas_rate_mscfd: "gas" };
-  const KIND = { oil_rate_stbd: "liq", water_rate_stbd: "liq", gas_rate_mscfd: "gas" };
+  const KIND = { oil_rate_stbd: "oil", water_rate_stbd: "liq", gas_rate_mscfd: "gas" };
   const addDays = (iso, n) => { const t = new Date(iso + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
 
   // ---- period (date range) controls
@@ -46,7 +46,7 @@
     const el = $("vfm-chart");
     PN.plot(el, traces, {
       xaxis: { range: [r0, addDays(r1, 1)] },
-      yaxis: { title: { text: `${PN.t("oil")} / ${PN.t("water")}, ${PN.ul("liq")}` }, rangemode: "tozero" },
+      yaxis: { title: { text: PN.ul("oil") === PN.ul("liq") ? `${PN.t("oil")} / ${PN.t("water")}, ${PN.ul("liq")}` : `${PN.t("oil")}, ${PN.ul("oil")} / ${PN.t("water")}, ${PN.ul("liq")}` }, rangemode: "tozero" },
       yaxis2: { title: { text: `${PN.t("gas")}, ${PN.ul("gas")}` }, overlaying: "y", side: "right", showgrid: false, rangemode: "tozero" },
       shapes: [...PN.shade(shut, "rgba(224,138,0,0.12)"), ...PN.shade([{ start: hd ? hd.date : null, end: hd ? addDays(hd.date, 1) : null }].filter(s => s.start), "rgba(0,119,200,0.10)")],
       margin: { r: 70 },
@@ -70,6 +70,7 @@
     };
     document.querySelectorAll("#val-split button").forEach(bt => bt.onclick = () => { valSplit = bt.dataset.s; drawVal(); });
     drawVal();
+    $("val-src").textContent = PN.t(PN.state.ds === "preloaded" ? "val_src_pre" : "val_src_up");
     $("val-how").innerHTML = `<details><summary>${PN.t("val_how_t")}</summary><ul style="margin:8px 0 0;padding-left:18px;display:grid;gap:6px;font-size:13px;color:var(--text-2)">`
       + [1, 2, 3, 4, 5, 6].map(i => `<li>${PN.t("val_how" + i)}</li>`).join("") + `</ul></details>`;
 
@@ -94,7 +95,7 @@
     const shut = hd.t.map((t, i) => (hd.shut_frac[i] >= 0.5 ? { start: t, end: hd.t[i + 1] || addDays(hd.date, 1) } : null)).filter(Boolean);
     // separate axis scales so the gas line never sits on top of the oil line
     const mx = a => Math.max(1, ...a.filter(v => v != null && isFinite(v)));
-    const liqMax = mx(PN.cva("liq", [...hd.oil_rate_stbd, ...hd.water_rate_stbd])) * 1.15;
+    const liqMax = mx([...PN.cva("oil", hd.oil_rate_stbd), ...PN.cva("liq", hd.water_rate_stbd)]) * 1.15;
     const gasMax = mx(PN.cva("gas", hd.gas_rate_mscfd)) * 1.9;
     PN.plot($("hourly-chart"), [
       ...T.map(k => ({ x: hd.t, y: PN.cva(KIND[k], hd[k]), name: PN.t(NAMES[k]), type: "scatter", mode: "lines+markers", line: { color: colour[k], width: 2, shape: "hvh" },
@@ -103,7 +104,7 @@
         yaxis: "y3", hovertemplate: "%{y:.1f}%" },
     ], {
       xaxis: { tickformat: "%H:%M" },
-      yaxis: { title: { text: `${PN.t("oil")} / ${PN.t("water")}, ${PN.ul("liq")}` }, range: [0, liqMax] },
+      yaxis: { title: { text: PN.ul("oil") === PN.ul("liq") ? `${PN.t("oil")} / ${PN.t("water")}, ${PN.ul("liq")}` : `${PN.t("oil")}, ${PN.ul("oil")} / ${PN.t("water")}, ${PN.ul("liq")}` }, range: [0, liqMax] },
       yaxis2: { title: { text: `${PN.t("gas")}, ${PN.ul("gas")}` }, overlaying: "y", side: "right", showgrid: false, range: [0, gasMax] },
       yaxis3: { overlaying: "y", side: "right", showgrid: false, visible: false, range: [0, 100] },
       shapes: PN.shade(shut, "rgba(224,138,0,0.14)"), margin: { r: 70 },

@@ -12,7 +12,7 @@
     <div class="right range-bar">
       <label><span data-i18n="rng_from"></span><input type="date" id="r-from"></label>
       <label><span data-i18n="rng_to"></span><input type="date" id="r-to"></label>
-      <div class="seg" id="r-quick"><button data-days="7">7d</button><button data-days="30">30d</button><button data-days="90">90d</button><button data-days="0" data-i18n="rng_all"></button></div>
+      <div class="seg" id="r-quick"><button data-days="1">1d</button><button data-days="7">7d</button><button data-days="30">30d</button><button data-days="90">90d</button><button data-days="0" data-i18n="rng_all"></button></div>
     </div></div>
   <div class="chart" id="vfm-chart" style="height:420px"></div>
 </section>
@@ -28,6 +28,7 @@
   <div class="card">
     <div class="card-h"><h3 data-i18n="validation"></h3><span class="sub" data-i18n="validation_sub"></span></div>
     <div class="seg" id="val-split" style="margin-bottom:10px"><button data-s="B" class="on" data-i18n="val_tab_b"></button><button data-s="A" data-i18n="val_tab_a"></button></div>
+    <div class="dim" id="val-src" style="font-size:12px;margin-bottom:8px"></div>
     <table class="t" id="val-table"></table>
     <div id="val-how" style="margin-top:14px"></div>
   </div>

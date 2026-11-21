@@ -3,7 +3,9 @@
 <section class="card">
   <div class="card-h"><h3 data-i18n="pta_events"></h3><span class="sub" data-i18n="pta_events_sub"></span></div>
   <div class="events" id="events"><div class="skel" style="min-height:48px;width:100%"></div></div>
+  <div class="dim" id="na-msg" style="margin-top:10px;font-size:13px" role="status"></div>
 </section>
+<div class="dim" id="q-src" style="margin:-4px 0 10px;font-size:13px"></div>
 
 <section class="row cols-4" id="res-kpis">
   <div class="card kpi acc"><div class="label" data-i18n="m"></div><div class="value"><span id="r-m">—</span><span class="unit" id="r-m-u">psi/cycle</span></div><div class="foot" id="r-m-a"></div></div>
@@ -20,11 +22,12 @@
     <div class="card-h"><h3 data-i18n="results"></h3><div class="right"><span class="badge" id="mode-badge"></span><span class="badge" id="q-badge"></span></div></div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
       <span class="eyebrow" data-i18n="window"></span>
-      <input type="number" id="w0" step="0.1" min="0.01" style="width:90px"> <span class="dim" data-i18n="to"></span>
-      <input type="number" id="w1" step="0.1" min="0.02" style="width:90px"> <span class="dim" data-i18n="hours"></span>
+      <input type="number" id="w0" step="0.1" min="0.01" style="width:90px" aria-label="Radial window start, hours"> <span class="dim" data-i18n="to"></span>
+      <input type="number" id="w1" step="0.1" min="0.02" style="width:90px" aria-label="Radial window end, hours"> <span class="dim" data-i18n="hours"></span>
       <button class="btn" id="apply"><span data-i18n="apply"></span></button>
       <button class="btn ghost" id="auto" data-icon="refresh"><span data-i18n="auto"></span></button>
     </div>
+    <div class="dim" id="fit-note" style="font-size:12px;margin:-6px 0 12px"></div>
     <div class="kv" id="extra"></div>
     <div class="eyebrow" style="margin:16px 0 8px" data-i18n="interpretation"></div>
     <div class="interp" id="interp"></div>

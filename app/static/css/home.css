@@ -38,8 +38,8 @@ html { scroll-behavior: smooth; }
 .h-lead { color: rgba(241,245,250,.82); }
 /* surface block (titles, buttons, KPIs) fades out as the camera goes underground */
 .h-surface { position: relative; z-index: 2; display: flex; flex-direction: column; will-change: opacity, transform; }
-/* TVD depth gauge (right edge) */
-.h-gauge { position: absolute; right: 32px; top: 50%; transform: translateY(-50%); z-index: 3; opacity: 0; pointer-events: none;
+/* TVD depth gauge (left edge) */
+.h-gauge { position: absolute; left: 32px; top: 50%; transform: translateY(-50%); z-index: 3; opacity: 0; pointer-events: none;
   display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 12px; border-radius: 14px;
   background: rgba(9,13,22,.45); border: 1px solid rgba(255,255,255,.1); backdrop-filter: blur(8px); }
 .g-head { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; color: var(--on-ink-2); }
@@ -93,24 +93,24 @@ html { scroll-behavior: smooth; }
 /* ---------- 2 how it works: panel on the right of the pinned hero ---------- */
 /* sunset palette from the photo: amber, gold, coral, sand on warm dark earth */
 .h-story { --amber: #FFA43A; --gold: #FFD37A; --coral: #FF5E4D; --sage: #9BD86B;
-  position: absolute; right: max(150px, calc((100vw - var(--maxw)) / 2 + 150px)); top: 50%; z-index: 3; width: min(440px, 38vw);  /* leaves room for the TVD gauge */
-  margin-top: calc(-1 * min(250px, 40vh)); opacity: 0; pointer-events: none; will-change: opacity, transform; }
+  position: absolute; right: max(48px, calc((100vw - var(--maxw)) / 2 + 48px)); top: 50%; z-index: 3; width: min(620px, 48vw);
+  margin-top: calc(-1 * min(320px, 44vh)); opacity: 0; pointer-events: none; will-change: opacity, transform; }
 .hs-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #E9CFB6; }
 .hs-head .sq { background: var(--amber); }
-.hs-steps { position: relative; height: 168px; }
+.hs-steps { position: relative; height: 196px; }
 .h-story .step { position: absolute; inset: 0; opacity: 0; transform: translateY(10px); transition: opacity .45s var(--ease), transform .45s var(--ease); }
 .h-story .step.on { opacity: 1; transform: none; }
 .h-story .step { --sc: var(--amber); }
 .h-story .step:nth-child(2), .h-story .step:nth-child(5) { --sc: var(--sage); }
 .h-story .step:nth-child(3) { --sc: var(--coral); }
 .h-story .step:nth-child(4) { --sc: var(--gold); }
-.step-num { display: inline-flex; align-items: baseline; gap: 6px; font-size: 30px; font-weight: 600; letter-spacing: -.04em; line-height: 1; color: var(--sc); }
-.step-num span { font-size: 12px; letter-spacing: 0; color: rgba(251,239,227,.55); font-weight: 500; }
-.h-story .step h3 { margin: 8px 0 8px; font-size: 22px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; color: #fff; text-shadow: 0 2px 16px rgba(0,0,0,.5); }
-.h-story .step p { margin: 0; font-size: 14px; line-height: 1.55; color: rgba(251,239,227,.82); text-shadow: 0 1px 10px rgba(0,0,0,.6);
+.step-num { display: inline-flex; align-items: baseline; gap: 6px; font-size: 38px; font-weight: 600; letter-spacing: -.04em; line-height: 1; color: #fff; }
+.step-num span { font-size: 12px; letter-spacing: 0; color: #fff; font-weight: 500; }
+.h-story .step h3 { margin: 10px 0 10px; font-size: 28px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; color: #fff; text-shadow: 0 2px 16px rgba(0,0,0,.5); }
+.h-story .step p { margin: 0; font-size: 16px; line-height: 1.55; color: rgba(251,239,227,.82); text-shadow: 0 1px 10px rgba(0,0,0,.6);
   display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 /* the chart card: small, glassy, warm so the photo shows through */
-.stage { position: relative; height: min(270px, 34vh); border-radius: 14px; overflow: hidden;
+.stage { position: relative; height: min(380px, 44vh); border-radius: 14px; overflow: hidden;
   background: linear-gradient(160deg, rgba(43,29,21,.78), rgba(18,12,9,.82)); border: 1px solid rgba(255,190,140,.16);
   backdrop-filter: blur(10px) saturate(1.2); box-shadow: 0 24px 50px -24px rgba(0,0,0,.7); }
 .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }

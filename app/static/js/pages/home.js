@@ -217,16 +217,19 @@
   // scene D (step 5): the field on one screen, with alerts
   function sceneField(t, l) {
     const { ctx } = stage, A = area(), W = A.x1 - A.x0, H = A.y1 - A.y0, base = ctx.globalAlpha;
-    const cols = 5, gap = 10, tw = (W - gap * (cols - 1)) / cols, th = Math.min(76, H * 0.2);
+    // box size follows the card: two manifold rows must fit, so the boxes shrink with a small card
+    const cols = 5, gap = W < 360 ? 6 : 10, tw = (W - gap * (cols - 1)) / cols, ROW = 32, th = clamp((H - 8 - ROW - 14 - 16) / 2, 26, 76);   // 16 = room for the label under the last pipe
+    const fs = clamp(tw / 7.5, 8.5, 11);                       // well-name size
+    const fo = clamp(Math.min(tw / 4.6, th - fs - 12), 9, 20);  // oil-number size (always below the name, never on top of it)
     const rows = [D.wells.filter(w => w.manifold === "A"), D.wells.filter(w => w.manifold !== "A")];
     rows.forEach((row, ri) => {
-      const y = A.y0 + 8 + ri * (th + 44);
+      const y = A.y0 + 8 + ri * (th + ROW);
       // manifold pipe with flow
-      const py = y + th + 18;
+      const py = y + th + 14;
       ctx.strokeStyle = C.line; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(A.x0, py); ctx.lineTo(A.x1, py); ctx.stroke();
       ctx.strokeStyle = C.ok; ctx.lineWidth = 3; ctx.setLineDash([10, 14]); ctx.lineDashOffset = -t * 30;
       ctx.globalAlpha = base * clamp(l / 0.4); ctx.beginPath(); ctx.moveTo(A.x0, py); ctx.lineTo(A.x1, py); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = base;
-      text(ctx, `${PN.t("manifold")} ${ri ? "B" : "A"}`, A.x1, py - 6, { size: 9, ls: 1, color: C.text3, align: "right" });
+      text(ctx, `${PN.t("manifold")} ${ri ? "B" : "A"}`, A.x1, py + 13, { size: 8.5, ls: 1, color: C.text3, align: "right" });   // under the pipe, clear of the boxes
       row.slice(0, cols).forEach((w, ci) => {
         const k = clamp((l * 1.6) - (ri * cols + ci) * 0.07); if (k <= 0) return;
         const x = A.x0 + ci * (tw + gap), yy = y + (1 - ease(k)) * 16;
@@ -238,16 +241,18 @@
           ctx.strokeStyle = (w.status === "alarm" ? "rgba(255,77,77," : "rgba(245,165,36,") + (0.7 * (1 - pr)) + ")";
           ctx.strokeRect(x - pr * 8, yy - pr * 8, tw + pr * 16, th + pr * 16);
         }
-        ctx.fillStyle = sc; ctx.beginPath(); ctx.arc(x + 12, yy + 15, 3.5, 0, 7); ctx.fill();
-        text(ctx, w.well, x + 22, yy + 19, { size: 11, weight: 600, color: C.text, ls: .5 });
-        text(ctx, w.oil ? PN.fmt(w.oil) : "—", x + 10, yy + th - 14, { size: Math.min(20, tw / 5), weight: 400, color: C.oil, upper: false });
-        text(ctx, "stb/d", x + tw - 8, yy + th - 14, { size: 9, color: C.text3, align: "right", ls: .5 });
+        // line 1: status dot + well name · line 2: oil rate (+ "stb/d" only when the box is wide enough)
+        const nameY = yy + 5 + fs, oilY = yy + th - 6;
+        ctx.fillStyle = sc; ctx.beginPath(); ctx.arc(x + 9, nameY - fs * 0.36, Math.max(2.5, fs * 0.3), 0, 7); ctx.fill();
+        text(ctx, w.well, x + 16, nameY, { size: fs, weight: 600, color: C.text, ls: .3 });
+        text(ctx, w.oil ? PN.fmt(w.oil) : "—", x + 7, oilY, { size: fo, weight: 500, color: C.oil, upper: false });
+        if (tw >= 120) text(ctx, "stb/d", x + tw - 7, oilY, { size: 9, color: C.text3, align: "right", ls: .5 });
         ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + tw / 2, yy + th); ctx.lineTo(x + tw / 2, py); ctx.stroke();
       });
       ctx.globalAlpha = base;
     });
     // alerts feed
-    const ay = A.y0 + 8 + 2 * (th + 44) + 12, ka = clamp((l - 0.35) / 0.4);
+    const ay = A.y0 + 8 + 2 * (th + ROW) + 12, ka = clamp((l - 0.35) / 0.4);
     if (ka > 0 && ay < A.y1 - 20) {
       ctx.globalAlpha = base * ka;
       text(ctx, `■ ${PN.t("alerts")}`, A.x0, ay, { size: 10, ls: 1.2, color: C.red, weight: 600 });
@@ -356,7 +361,8 @@
       const ov = await PN.api("/api/overview");
       D.wells = ov.wells.slice().sort((a, b) => (a.manifold + a.well).localeCompare(b.manifold + b.well));
       D.alerts = ov.alerts.filter(a => a.level !== "info").concat(ov.alerts.filter(a => a.level === "info"));
-      NUM.oil = ov.totals.oil_rate_stbd; NUM.cum = ov.period_cum_oil / 1000;
+      NUM.oil = PN.cv("oil", ov.totals.oil_rate_stbd); NUM.cum = PN.cv("oil", ov.period_cum_oil) / 1000;
+      $("n-cum-u").textContent = `10³ ${PN.vl("oil")}`;
       NUM.flag = ov.wells.filter(w => w.status !== "ok").length;
     } catch (e) { /* the story still runs on synthetic data */ }
     try {

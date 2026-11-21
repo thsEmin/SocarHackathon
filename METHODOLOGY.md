@@ -67,11 +67,13 @@ These are leave-one-test-out scores. Hiding each well's **last 2 tests** gives o
 
 Test points can't measure the normal-day back-pressure effect or behaviour in upsets. That's why we chose v2 even where v1 scores slightly better at test points.
 
+**Estimation, not forecasting.** The VFM estimates rates for days whose sensor data already exist. Some inputs use data from both sides of the day: the slow sensor trend is a centred rolling median, short gaps are interpolated in both directions, and the drawdown comes from shut-in pressures that can fall after the day. So these scores measure *historical estimation* (the competition task), not a forward forecast. Hiding a test hides its rates, not its sensor readings.
+
 ## 5. PTA: automatic build-up analysis
 
 | Step | Method |
 |---|---|
-| Rate q | VFM daily oil rate of the last full producing day before shut-in (taken straight from the VFM Excel) |
+| Rate q | VFM daily oil rate of the last full producing day before shut-in (taken straight from the VFM Excel). If no such day exists (e.g. an upload that starts on the shut-in day), or there are too few build-up points, that event is marked "PTA unavailable" with the reason; other events and VFM are unaffected |
 | Producing time tp | Horner: 24·Np/q, with Np = cumulative oil to 1 Jan 2025 plus VFM volumes |
 | Flowing pressure Pwf | Last flowing downhole gauge reading before the choke closed |
 | Radial-flow window | Bourdet derivative on Agarwal equivalent time. The widest stretch where the derivative is flat within 2% |

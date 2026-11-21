@@ -57,7 +57,9 @@ def well_info(ds, well):
     today = p.iloc[-1]
     dly = ds.daily[(ds.daily.well_name == well) & (ds.daily.shut_frac == 0)].sort_values("date").tail(7)
     clean = lambda dct: {k: (v.item() if hasattr(v, "item") else v) for k, v in dct.items()}
+    skip = [r for r in pta_service.skipped(ds) if r["well_name"] == well]
     return {"well": well, "completion": clean(comp), "pvt": clean(pvt), "pta": ev[-1] if ev else None,
+            "pta_skipped": skip,
             "today": {"date": str(today.date.date()), **{k: float(today[k]) for k in T}},
             "sensors_7d": {c: float(dly[c].mean()) for c in store.SENSORS + ["choke_opening_pct"]},
             "drawdown": float(s["drawdown"].drawdown_psi.get(well, np.nan))}
@@ -68,9 +70,12 @@ def vfm_hourly(ds, well, date):
     mean of the 24 hours equals the daily VFM value (hourly and daily views always agree)."""
     from . import diagnostics
     try:
-        day = pd.Timestamp(date).normalize()
+        day = pd.Timestamp(date)
     except (ValueError, TypeError):
+        day = pd.NaT
+    if pd.isna(day):                      # "" or other empty input parses to NaT
         raise ValueError("please choose a valid date")
+    day = day.normalize()
     row = ds.preds[(ds.preds.well_name == well) & (ds.preds.date == day)]
     if row.empty:
         raise ValueError(f"no data for {well} on {date}")
@@ -114,10 +119,16 @@ def _pta_table(ds):
     return inp, r, curves
 
 
+NO_ELIGIBLE = ("no shut-in in this dataset has enough data for PTA. "
+               "Include at least one full producing day before each shut-in.")
+
+
 def export_pta_xlsx(ds):
     if not len(ds.shut):
         raise ValueError("this dataset has no shut-ins")
     _, r, _ = _pta_table(ds)
+    if r.empty:
+        raise ValueError(NO_ELIGIBLE)
     buf = io.BytesIO()
     store.pta.write_excel(r, buf)
     return buf.getvalue()
@@ -127,6 +138,8 @@ def export_plots_zip(ds):
     if not len(ds.shut):
         raise ValueError("this dataset has no shut-ins")
     inp, r, curves = _pta_table(ds)
+    if r.empty:
+        raise ValueError(NO_ELIGIBLE)
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         for _, res in r.iterrows():

@@ -52,24 +52,46 @@ def _event(ds, idx):
     return ev
 
 
-def events(ds):
-    """Auto analysis of every shut-in (cached per dataset)."""
+def _auto(ds):
+    """Auto analysis of every shut-in (cached per dataset): one (res, err) pair per shut-in."""
     if "auto" not in ds._pta_cache:
         inp = ds.pta_inputs()
         out = []
         for i in range(len(ds.shut)):
-            res, _ = pta.analyse(inp, ds.shut.iloc[i])
-            out.append(res)
+            res, _, err = pta.analyse_safe(inp, ds.shut.iloc[i])
+            out.append((res, err))
         ds._pta_cache["auto"] = out
+    return ds._pta_cache["auto"]
+
+
+def events(ds):
+    """Eligible shut-ins with their automatic results. `idx` is the shut-in's position in ds.shut."""
     rows = []
-    for i, r in enumerate(ds._pta_cache["auto"]):
+    for i, (r, err) in enumerate(_auto(ds)):
+        if err:
+            continue
         rows.append({"idx": i, "well_name": r["well_name"], "shut_in_start": r["shut_in_start"].isoformat(),
                      "quality": r["quality"], "late": r["late_time_behaviour"],
+                     "q_source_date": str(r["q_source_date"]),
                      **{k: _clean(r[k]) for k in RESULT_KEYS}})
     return rows
 
 
+def skipped(ds):
+    """Shut-ins that could not be analysed, each with a code (translated in the page) and an English reason."""
+    out = []
+    for i, (_, err) in enumerate(_auto(ds)):
+        if err:
+            ev = ds.shut.iloc[i]
+            out.append({"idx": i, "well_name": ev.well_name, "shut_in_start": ev.shut_start.isoformat(),
+                        "duration_hr": round((ev.shut_end - ev.shut_start).total_seconds() / 3600, 2), **err})
+    return out
+
+
 def detail(ds, idx, window=None):
+    _, err = _auto(ds)[idx]
+    if err:
+        raise ValueError(err["reason"])
     inp = ds.pta_inputs()
     ev = _event(ds, idx)
     res, cur = pta.analyse(inp, ev, window=window)
@@ -77,7 +99,7 @@ def detail(ds, idx, window=None):
         n_in = int(((cur["dt"] >= window[0]) & (cur["dt"] <= window[1])).sum())
         if n_in < 5:
             raise ValueError(f"only {n_in} data points in {window[0]:g}-{window[1]:g} h; choose a wider window")
-    auto = events(ds)[idx]
+    auto = _auto(ds)[idx][0]
     # curves for the four plots
     hw = ds.hf[ds.hf.well_name == ev.well_name]
     hist = hw[hw.timestamp.between(ev.shut_start - pd.Timedelta(days=5), ev.shut_end + pd.Timedelta(days=1))]
@@ -94,10 +116,11 @@ def detail(ds, idx, window=None):
     return {
         "idx": idx, "well_name": ev.well_name, "shut_in_start": ev.shut_start.isoformat(),
         "shut_in_end": ev.shut_end.isoformat(), "window_auto": bool(res["window_auto"]),
-        "auto_window": [auto["radial_window_start_hr"], auto["radial_window_end_hr"]],
+        "auto_window": [_clean(auto["radial_window_start_hr"]), _clean(auto["radial_window_end_hr"])],
         "quality": res["quality"], "late": res["late_time_behaviour"],
+        "q_source_date": str(res["q_source_date"]),
         "results": {k: _clean(res[k]) for k in RESULT_KEYS},
-        "auto_results": {k: auto[k] for k in ("horner_slope_psi_cycle", "permeability_md", "skin", "dp_skin_psi")},
+        "auto_results": {k: _clean(auto[k]) for k in ("horner_slope_psi_cycle", "permeability_md", "skin", "dp_skin_psi")},
         "interpretation": interpretation_codes(res),
         "history": {"t": [x.isoformat() for x in hist.index], "p": list(np.round(hist.values, 2)),
                     "rate_t": rate_t, "rate_q": [float(v) for v in rate_q]},

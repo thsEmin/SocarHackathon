@@ -88,6 +88,28 @@ def load_preloaded():
     return ds
 
 
+# ready-made demo datasets (1 / 7 / 30 / 90 days), cut from the preloaded data at startup so they
+# are in the Dataset list straight away. 1 day and 30 days are the same periods as the files in samples/.
+SAMPLES = [("sample-1d", "2025-08-27", "2025-08-27"),    # samples/field_all_wells_1day_27Aug2025.csv
+           ("sample-7d", "2025-08-16", "2025-08-22"),    # includes the GL-08 shut-in (19-22 Aug)
+           ("sample-30d", "2025-08-01", "2025-08-30"),   # August (as samples/field_all_wells_Aug2025.csv), 30 days
+           ("sample-90d", "2025-07-03", "2025-09-30")]   # GL-06 and GL-08 shut-ins
+
+
+def load_samples(base):
+    for ds_id, a, b in SAMPLES:
+        a, b = pd.Timestamp(a), pd.Timestamp(b)
+        end = b + pd.Timedelta(days=1)
+        in_days = lambda df: df[(df.date >= a) & (df.date <= b)].reset_index(drop=True)
+        hf = base.hf[(base.hf.timestamp >= a) & (base.hf.timestamp < end)].reset_index(drop=True)
+        shut = base.shut[(base.shut.shut_start >= a) & (base.shut.shut_end < end)].reset_index(drop=True)
+        n = (b - a).days + 1
+        label = f"Sample: {n} day{'s' if n > 1 else ''} ({a:%d %b} - {b:%d %b %Y}, 10 wells)"
+        ds = Dataset(ds_id, label, hf, in_days(base.daily), in_days(base.preds), shut, base.choke,
+                     base.clean_log, "sample")
+        _DATASETS[ds.id] = ds
+
+
 def get(ds_id, strict=False):
     """strict=True returns None for an unknown id instead of falling back to the preloaded data."""
     if strict:
@@ -176,6 +198,20 @@ def _run_upload(job_id, files):
         n_w = preds.well_name.nunique()
         label = f"Upload: {name} ({preds.date.min():%d %b} - {preds.date.max():%d %b %Y}, {n_w} well{'s' if n_w > 1 else ''})"
         ds = Dataset(ds_id, label, h, daily, preds, shut, choke, log, "upload")
+
+        # check every shut-in for PTA now, so the page can say how many are usable and why not
+        _stage(job_id, "checking shut-ins for PTA", 95)
+        inp = ds.pta_inputs()
+        auto = []
+        for i in range(len(shut)):
+            res, _, err = pta.analyse_safe(inp, shut.iloc[i])
+            auto.append((res, err))
+            if err:
+                j["warnings"].append(f"{shut.well_name.iloc[i]} shut-in {shut.shut_start.iloc[i]:%d %b %Y %H:%M}: "
+                                     f"{err['reason']}")
+        ds._pta_cache["auto"] = auto
+        j["pta_ok"] = sum(e is None for _, e in auto)
+        j["pta_total"] = len(auto)
         with _LOCK:
             _DATASETS[ds_id] = ds
         j.update(status="done", stage="done", progress=100, dataset=ds_id)
