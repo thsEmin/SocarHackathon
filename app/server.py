@@ -52,6 +52,10 @@ def create_app():
     def index():
         return render_template("home.html", page="home")
 
+    @app.route("/favicon.ico")
+    def favicon():
+        return app.send_static_file("img/favicon.ico")
+
     @app.route("/<page>")
     def page(page):
         if page not in PAGES:
