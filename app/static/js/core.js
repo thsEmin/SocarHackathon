@@ -9,10 +9,11 @@
 
   const PN = window.PN = {
     state: { ds: store.get("ds", "preloaded"), well: store.get("well", "GL-01"), lang: store.get("lang", "en"), datasets: [] },
-    colors: { oil: "#15965A", gas: "#D33A3A", water: "#2563EB", accent: "#FE5B2A", whp: "#FE5B2A", down: "#8A8C91",
-              dhp: "#7C3AED", temp: "#DB2777", ann: "#D97706", lift: "#0891B2", choke: "#18191B",
-              ok: "#15803D", warn: "#E08A00", alarm: "#C81E1E", grid: "rgba(12,12,12,0.07)", text2: "#47484B", text3: "#74767A",
-              ink: "#18191B", line: "#C3C4C8", muted: "rgba(116,118,122,.55)" },
+    colors: { oil: "#3F8A24", gas: "#E5484D", water: "#2F80ED", accent: "#0077C8", whp: "#00A3D9", down: "#8A99AD",
+              dhp: "#7B61FF", temp: "#D6336C", ann: "#E08A00", lift: "#0FA3B1", choke: "#0B2341",
+              ok: "#3F8A24", warn: "#F2A900", alarm: "#D7263D", red: "#EF3340", blue: "#00B5E2", green: "#509E2F",
+              grid: "rgba(11,35,65,0.07)", text2: "#44546A", text3: "#5F6F84",
+              ink: "#0B2341", line: "#C9D2DE", muted: "rgba(95,111,132,.5)" },
     page: null,
   };
 

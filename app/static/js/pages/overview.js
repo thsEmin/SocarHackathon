@@ -70,7 +70,7 @@
     // field chart
     const s = data.field_series, c = PN.colors;
     PN.plot($("field-chart"), [
-      { x: s.t, y: s.oil_rate_stbd, name: `${PN.t("oil")} (${PN.t("stbd")})`, type: "scatter", mode: "lines", line: { color: c.oil, width: 2 }, fill: "tozeroy", fillcolor: "rgba(21,150,90,.08)" },
+      { x: s.t, y: s.oil_rate_stbd, name: `${PN.t("oil")} (${PN.t("stbd")})`, type: "scatter", mode: "lines", line: { color: c.oil, width: 2 }, fill: "tozeroy", fillcolor: "rgba(63,138,36,.08)" },
       { x: s.t, y: s.water_rate_stbd, name: `${PN.t("water")} (${PN.t("stbd")})`, type: "scatter", mode: "lines", line: { color: c.water, width: 2 } },
       { x: s.t, y: s.gas_rate_mscfd, name: `${PN.t("gas")} (${PN.t("mscfd")})`, type: "scatter", mode: "lines", line: { color: c.gas, width: 2 }, yaxis: "y2" },
     ], { yaxis: { title: { text: PN.t("stbd") }, rangemode: "tozero" },

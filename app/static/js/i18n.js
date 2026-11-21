@@ -118,6 +118,8 @@ window.I18N = {
     h_num_note: "Numbers are calculated live from the selected dataset (SOCAR 2026 by default).",
     h_mod_eyebrow: "Modules", h_mod_title: "Everything an engineer needs, in one place",
     h_cta_title: "See your field in one screen",
+    h_g_soil: "Soil · sand", h_g_shale: "Shale", h_g_sand: "Sandstone", h_g_lime: "Limestone",
+    h_g_cap: "Cap rock", h_g_res: "Oil reservoir", h_g_water: "Water zone",
   },
   az: {
     brand_sub: "Quyu məhsuldarlığı analitikası",
@@ -229,5 +231,7 @@ window.I18N = {
     h_num_note: "Rəqəmlər seçilmiş məlumat dəstindən canlı hesablanır (standart olaraq SOCAR 2026).",
     h_mod_eyebrow: "Modullar", h_mod_title: "Mühəndisə lazım olan hər şey bir yerdə",
     h_cta_title: "Yatağınızı bir ekranda görün",
+    h_g_soil: "Torpaq · qum", h_g_shale: "Gil", h_g_sand: "Qumdaşı", h_g_lime: "Əhəngdaşı",
+    h_g_cap: "Örtük süxur", h_g_res: "Neft layı", h_g_water: "Su zonası",
   },
 };

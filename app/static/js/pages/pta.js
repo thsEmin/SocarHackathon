@@ -60,7 +60,7 @@
     const L = cur.loglog, w0 = r.radial_window_start_hr, w1 = r.radial_window_end_hr;
     PN.plot($("c-loglog"), [
       { x: L.dt, y: L.dp, name: PN.t("dp"), type: "scatter", mode: "markers", marker: { color: c.water, size: 5 } },
-      { x: L.dt, y: L.der, name: PN.t("deriv"), type: "scatter", mode: "markers", marker: { color: c.accent, size: 5 } },
+      { x: L.dt, y: L.der, name: PN.t("deriv"), type: "scatter", mode: "markers", marker: { color: c.red, size: 5 } },
     ], { xaxis: { type: "log", title: { text: "Δt, h" } }, yaxis: { type: "log", title: { text: "psi" } }, hovermode: "closest",
          dragmode: "select", selectdirection: "h",
          shapes: [{ type: "rect", xref: "x", yref: "paper", x0: w0, x1: w1, y0: 0, y1: 1, fillcolor: "rgba(21,128,61,.09)", line: { color: "rgba(21,128,61,.5)", width: 1 } },

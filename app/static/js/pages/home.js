@@ -7,9 +7,10 @@
   const ease = k => (k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
   const hash = (i, s = 0) => { const x = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
   // bright variants for the dark stage
-  const C = { ink: "#18191B", ink2: "#232427", line: "#2F3032", text: "#EFF0F1", text2: "#A3A5AA", text3: "#6E7075",
-              orange: "#FE5B2A", oil: "#2BC48A", water: "#5B93FF", gas: "#FF6B6B", dhp: "#B39DFF", temp: "#F472B6",
-              lift: "#38BDF8", ok: "#22C55E", warn: "#F5A524", alarm: "#FF4D4D", radial: "rgba(34,197,94," };
+  // SOCAR palette, brightened for the navy stage: "orange" is the highlight role (logo blue)
+  const C = { ink: "#0B2341", ink2: "#12305A", line: "#24446E", text: "#F1F5FA", text2: "#A9BCD3", text3: "#7C93B0",
+              orange: "#00B5E2", red: "#FF5A66", oil: "#7BD35A", water: "#5B9BFF", gas: "#FF6B74", dhp: "#B39DFF", temp: "#F48FB1",
+              lift: "#5EEAD4", ok: "#7BD35A", warn: "#F5B841", alarm: "#FF5A66", radial: "rgba(123,211,90," };
 
   // ------------------------------------------------------------------ data (live, with fallbacks)
   const D = {
@@ -56,32 +57,112 @@
   function drawHero(t, sy) {
     const { ctx, w, h } = hero;
     ctx.clearRect(0, 0, w, h);
-    const N = 30, wx = w * (w > 1100 ? 0.74 : 0.93), off = sy * 0.25, breathe = 0.85 + 0.15 * Math.sin(t * 1.1);
-    for (let i = 0; i < N; i++) {
-      const y0 = h * 0.1 + i * (h * 0.85 / N) - off * (0.4 + i / N);
-      const depth = 46 * (1 - i / N) * breathe, spread = 70 + i * 9;
-      ctx.beginPath();
-      for (let x = 0; x <= w; x += 8) {
-        const env = clamp((x / w - 0.22) / 0.55);
-        const wave = Math.sin(x * 0.007 + t * 0.5 + i * 0.33) * 14 + Math.sin(x * 0.019 - t * 0.8 + i * 0.6) * 6;
-        const cone = depth * Math.exp(-(((x - wx) / spread) ** 2));
-        const y = y0 + env * wave + cone * env;
-        x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
-      }
-      const hot = i === Math.floor((t * 2.2) % N);
-      ctx.strokeStyle = hot ? "rgba(254,91,42,.9)" : `rgba(239,240,241,${0.06 + 0.16 * (1 - i / N)})`;
-      ctx.lineWidth = hot ? 1.6 : 1; ctx.stroke();
+    if (!w || !h) return;
+    const G = ground(w, h), lay = G.layers, wx = G.wx;
+    ctx.save(); ctx.translate(0, -sy * 0.28);   // the ground scrolls a little slower than the page
+
+    // 1 strata: each layer fills from its top boundary down; deeper layers paint over
+    lay.forEach(L => {
+      const path = () => { ctx.beginPath(); for (let x = 0; x <= w + 8; x += 8) { const y = L.y(x); x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } };
+      path(); ctx.lineTo(w + 8, h * 2); ctx.lineTo(0, h * 2); ctx.closePath();
+      ctx.fillStyle = L.fill; ctx.fill();
+      if (L.pat) { ctx.fillStyle = L.pat; ctx.fill(); }
+      path(); ctx.strokeStyle = L.edge; ctx.lineWidth = L.edgeW || 1; if (L.dash) ctx.setLineDash(L.dash); ctx.stroke(); ctx.setLineDash([]);
+    });
+    const res = lay[5], wat = lay[6], yS = lay[0].y(wx), yMid = x => (res.y(x) + wat.y(x)) / 2;
+
+    // 2 reservoir life (clipped to the oil zone): pressure waves + oil drops moving to the well
+    ctx.save(); ctx.beginPath();
+    for (let x = 0; x <= w + 8; x += 8) { const y = res.y(x); x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    for (let x = w + 8; x >= 0; x -= 8) ctx.lineTo(x, wat.y(x));
+    ctx.closePath(); ctx.clip();
+    for (let k = 0; k < 3; k++) {
+      const ph = (t * 0.3 + k / 3) % 1, rx = 18 + ph * w * 0.42;
+      ctx.strokeStyle = `rgba(123,211,90,${0.4 * (1 - ph)})`; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.ellipse(wx, yMid(wx), rx, rx * 0.2, 0, 0, 7); ctx.stroke();
     }
-    // the well: a vertical bore down into the cone, with rising flow dashes
-    const top = h * 0.06 - off * 0.3, bot = h * 0.62 - off * 0.5;
-    ctx.strokeStyle = "rgba(239,240,241,.35)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(wx - 4, top); ctx.lineTo(wx - 4, bot); ctx.moveTo(wx + 4, top); ctx.lineTo(wx + 4, bot); ctx.stroke();
-    ctx.strokeStyle = C.orange; ctx.lineWidth = 2; ctx.setLineDash([8, 10]); ctx.lineDashOffset = t * 40;
-    ctx.beginPath(); ctx.moveTo(wx, bot); ctx.lineTo(wx, top); ctx.stroke(); ctx.setLineDash([]);
-    box(ctx, wx - 12, top - 14, 24, 14, C.orange);
-    // gauge readout that follows the cone
-    const gy = bot + 18;
-    ctx.fillStyle = C.orange; ctx.fillRect(wx - 3, bot - 3, 6, 6);
-    text(ctx, `DHP ${PN.fmt(3220 + 40 * Math.sin(t * 1.1), 0)} psia`, wx + 14, gy, { mono: true, size: 11, color: C.text2, upper: false });
+    for (let i = 0; i < 54; i++) {
+      const side = i % 2 ? 1 : -1, sp = 0.035 + hash(i, 3) * 0.05, u = (hash(i, 1) + t * sp) % 1;
+      const x = wx + side * Math.pow(1 - u, 1.3) * w * 0.45, yy = lerp(res.y(x), wat.y(x), 0.2 + hash(i, 2) * 0.6);
+      const a = clamp(u * 4) * clamp((1 - u) * 8);
+      ctx.fillStyle = `rgba(123,211,90,${0.9 * a})`; ctx.beginPath(); ctx.arc(x, yy, 1.3 + hash(i, 4) * 1.5, 0, 7); ctx.fill();
+    }
+    ctx.restore();
+    // water zone shimmer (blue)
+    for (let k = 0; k < 3; k++) {
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += 10) { const y = wat.y(x) + 14 + k * 16 + Math.sin(x * 0.018 + t * 1.2 + k * 2) * 2.5; x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+      ctx.strokeStyle = `rgba(91,155,255,${0.22 - k * 0.05})`; ctx.lineWidth = 1; ctx.stroke();
+    }
+
+    // 3 the well: casing, lift gas down the annulus (red), oil up the tubing (green)
+    const bot = yMid(wx) + 10, valveY = lay[3].y(wx) + 12;
+    ctx.fillStyle = "rgba(8,18,32,.9)"; ctx.fillRect(wx - 8, yS, 16, bot - yS);
+    ctx.strokeStyle = "rgba(241,245,250,.6)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(wx - 8.5, yS); ctx.lineTo(wx - 8.5, bot); ctx.moveTo(wx + 8.5, yS); ctx.lineTo(wx + 8.5, bot); ctx.stroke();
+    ctx.setLineDash([4, 6]); ctx.lineWidth = 1.4; ctx.strokeStyle = "rgba(255,90,102,.9)"; ctx.lineDashOffset = -t * 30;
+    ctx.beginPath(); ctx.moveTo(wx - 5.5, yS); ctx.lineTo(wx - 5.5, valveY); ctx.moveTo(wx + 5.5, yS); ctx.lineTo(wx + 5.5, valveY); ctx.stroke();
+    ctx.strokeStyle = C.oil; ctx.lineWidth = 2.4; ctx.setLineDash([9, 7]); ctx.lineDashOffset = t * 45;
+    ctx.beginPath(); ctx.moveTo(wx, bot); ctx.lineTo(wx, yS); ctx.stroke(); ctx.setLineDash([]);
+    for (let k = 0; k < 10; k++) { // gas bubbles lifting the oil above the valve
+      const span = valveY - yS, yy = valveY - ((t * 70 + k * span / 10) % span);
+      ctx.fillStyle = `rgba(255,150,158,${0.35 + 0.6 * (yy - yS) / span})`;
+      ctx.beginPath(); ctx.arc(wx + Math.sin(t * 4 + k) * 1.6, yy, 1.9, 0, 7); ctx.fill();
+    }
+    ctx.fillStyle = C.red; ctx.fillRect(wx + 8, valveY - 4, 5, 8);
+    ctx.strokeStyle = "rgba(123,211,90,.95)"; ctx.lineWidth = 1.6;
+    for (let k = -2; k <= 2; k++) { const py = yMid(wx) + k * 7; ctx.beginPath(); ctx.moveTo(wx - 20, py); ctx.lineTo(wx - 9, py); ctx.moveTo(wx + 9, py); ctx.lineTo(wx + 20, py); ctx.stroke(); }
+    const gY = res.y(wx) + 6;
+    ctx.fillStyle = C.orange; ctx.fillRect(wx - 3, gY - 3, 6, 6);
+    if (w > 700) text(ctx, `DHP ${PN.fmt(3220 + 30 * Math.sin(t * 0.9), 0)} psia`, wx + 26, gY + 4, { mono: true, size: 11, color: C.text, upper: false });
+
+    // 4 surface: derrick, red wellhead, lift-gas line in (red) and oil flowline out (green)
+    const dh = Math.min(86, h * 0.11);
+    ctx.strokeStyle = "rgba(241,245,250,.55)"; ctx.lineWidth = 1.2; ctx.beginPath();
+    ctx.moveTo(wx - 24, yS); ctx.lineTo(wx - 4, yS - dh); ctx.lineTo(wx + 4, yS - dh); ctx.lineTo(wx + 24, yS);
+    for (let k = 1; k <= 4; k++) { const f = k / 5, y = yS - dh * f, half = 24 - 20 * f, y2 = yS - dh * (k - 1) / 5, h2 = 24 - 20 * (k - 1) / 5; ctx.moveTo(wx - half, y); ctx.lineTo(wx + half, y); ctx.moveTo(wx - h2, y2); ctx.lineTo(wx + half, y); }
+    ctx.stroke();
+    ctx.fillStyle = `rgba(255,90,102,${0.55 + 0.45 * Math.abs(Math.sin(t * 2))})`; ctx.beginPath(); ctx.arc(wx, yS - dh - 4, 3, 0, 7); ctx.fill();
+    box(ctx, wx - 10, yS - 13, 20, 13, C.red);
+    ctx.lineWidth = 2; ctx.setLineDash([7, 6]);
+    ctx.strokeStyle = "rgba(255,90,102,.85)"; ctx.lineDashOffset = -t * 30; ctx.beginPath(); ctx.moveTo(wx - w * 0.22, lay[0].y(wx - w * 0.22) - 3); ctx.lineTo(wx - 10, yS - 4); ctx.stroke();
+    ctx.strokeStyle = C.oil; ctx.lineDashOffset = -t * 40; ctx.beginPath(); ctx.moveTo(wx + 10, yS - 6); ctx.lineTo(w + 10, lay[0].y(w) - 3); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 5 layer names on the right
+    if (w > 760) lay.forEach((L, i) => {
+      if (!L.name || !lay[i + 1]) return;
+      const xl = w - 26, ym = (L.y(xl) + lay[i + 1].y(xl)) / 2 + 4;
+      text(ctx, PN.t(L.name), xl, ym, { size: 10.5, ls: 1.2, align: "right", weight: 600, color: L.label || "rgba(241,245,250,.42)" });
+    });
+    ctx.restore();
+  }
+
+  // geology is rebuilt only when the hero size changes
+  let GC = null;
+  function tile(draw, s = 28) { const c = document.createElement("canvas"); c.width = c.height = s; draw(c.getContext("2d"), s); return hero.ctx.createPattern(c, "repeat"); }
+  function ground(w, h) {
+    if (GC && GC.w === w && GC.h === h) return GC;
+    const wx = w * (w > 1100 ? 0.72 : 0.88), S = Math.max(170, w * 0.21);
+    const dome = (x, d) => -d * Math.exp(-(((x - wx) / S) ** 2));      // anticline: the classic oil trap
+    const dots = (col, n, r = 1) => tile((g, s) => { g.fillStyle = col; for (let i = 0; i < n; i++) { g.beginPath(); g.arc(hash(i, 11) * s, hash(i, 12) * s, r * (0.6 + hash(i, 13) * 0.9), 0, 7); g.fill(); } });
+    const strokes = (col, gap, dash) => tile((g, s) => { g.strokeStyle = col; g.lineWidth = 1; g.setLineDash(dash || []); for (let y = gap / 2; y < s; y += gap) { g.beginPath(); g.moveTo(0, Math.round(y) + .5); g.lineTo(s, Math.round(y) + .5); g.stroke(); } });
+    const bricks = col => tile((g, s) => { g.strokeStyle = col; g.lineWidth = 1; const r = s / 2;
+      for (let k = 0; k < 2; k++) { g.beginPath(); g.moveTo(0, k * r + .5); g.lineTo(s, k * r + .5); g.moveTo((k ? s / 2 : 0) + .5, k * r); g.lineTo((k ? s / 2 : 0) + .5, k * r + r); g.stroke(); } }, 32);
+    const L = (base, o) => Object.assign({ edge: "rgba(255,255,255,.08)",
+      y: x => h * base + (o.a || 5) * Math.sin(x * (o.f || 0.004) + (o.p || 0)) + 2 * Math.sin(x * 0.013 + (o.p || 0) * 3) + (o.d ? dome(x, h * o.d) : 0) }, o);
+    GC = { w, h, wx, layers: [
+      // depths are fractions of the hero height; the oil zone sits above the fact cards
+      L(.30, { name: "h_g_soil", fill: "#3B3127", pat: dots("rgba(255,226,180,.10)", 14), a: 6, f: .006, edge: "rgba(123,211,90,.55)", edgeW: 2 }),
+      L(.37, { name: "h_g_shale", fill: "#2D2C33", pat: strokes("rgba(255,255,255,.05)", 5, [6, 4]), a: 4, p: 1, d: .012 }),
+      L(.43, { name: "h_g_sand", fill: "#443625", pat: dots("rgba(255,214,160,.13)", 26), a: 5, p: 2, d: .022 }),
+      L(.49, { name: "h_g_lime", fill: "#30353F", pat: bricks("rgba(255,255,255,.065)"), a: 4, p: 3, d: .032 }),
+      L(.545, { name: "h_g_cap", fill: "#222229", pat: strokes("rgba(255,255,255,.04)", 3), a: 3, p: 4, d: .042 }),
+      L(.575, { name: "h_g_res", fill: "#24341E", pat: dots("rgba(123,211,90,.2)", 22), a: 3, p: 4.4, d: .05, edge: "rgba(123,211,90,.6)", edgeW: 1.5, label: "rgba(123,211,90,.9)" }),
+      L(.70, { name: "h_g_water", fill: "#13294A", pat: strokes("rgba(91,155,255,.12)", 6, [3, 5]), a: 3, p: 5, d: .035, edge: "rgba(91,155,255,.65)", dash: [6, 5], label: "rgba(120,170,255,.95)" }),
+      L(.86, { fill: "#0D1828", a: 3, p: 6, d: .015 }),
+    ] };
+    return GC;
   }
 
   // ------------------------------------------------------------------ 2 · story stage
@@ -123,17 +204,17 @@
         }
         const d = sweep - x;
         if (hash(j, li + 10) > 0.972 && d > 0 && d < 140) {
-          ctx.strokeStyle = `rgba(254,91,42,${1 - d / 140})`; ctx.lineWidth = 1.2;
+          ctx.strokeStyle = `rgba(123,211,90,${1 - d / 140})`; ctx.lineWidth = 1.2;
           ctx.beginPath(); ctx.arc(x, yc - L.f(j) * amp, 5 + d / 14, 0, Math.PI * 2); ctx.stroke();
         }
       }
     });
     // sweep line
     if (sweep > A.x0 && sweep < A.x1) {
-      const g = ctx.createLinearGradient(sweep - 80, 0, sweep, 0); g.addColorStop(0, "rgba(254,91,42,0)"); g.addColorStop(1, "rgba(254,91,42,.18)");
+      const g = ctx.createLinearGradient(sweep - 80, 0, sweep, 0); g.addColorStop(0, "rgba(123,211,90,0)"); g.addColorStop(1, "rgba(123,211,90,.2)");
       ctx.fillStyle = g; ctx.fillRect(sweep - 80, A.y0, 80, A.y1 - A.y0);
-      ctx.fillStyle = C.orange; ctx.fillRect(sweep, A.y0 - 6, 1.5, A.y1 - A.y0 + 12);
-      text(ctx, PN.t("h_lg_clean"), sweep + 8, A.y0 + 4, { size: 10, ls: 1, color: C.orange, weight: 600 });
+      ctx.fillStyle = C.ok; ctx.fillRect(sweep, A.y0 - 6, 2, A.y1 - A.y0 + 12);
+      text(ctx, PN.t("h_lg_clean"), sweep + 8, A.y0 + 4, { size: 10, ls: 1, color: C.ok, weight: 600 });
     }
     // legend
     const lx = A.x1;
@@ -157,9 +238,9 @@
     });
     // node
     const pulse = (t * 0.8) % 1;
-    ctx.strokeStyle = `rgba(254,91,42,${0.6 * (1 - pulse)})`; ctx.lineWidth = 1;
+    ctx.strokeStyle = `rgba(255,90,102,${0.7 * (1 - pulse)})`; ctx.lineWidth = 1;
     const r = ns / 2 + pulse * 26; ctx.strokeRect(nx - r, ny - r, r * 2, r * 2);
-    box(ctx, nx - ns / 2, ny - ns / 2, ns, ns, C.ink2, C.orange);
+    box(ctx, nx - ns / 2, ny - ns / 2, ns, ns, C.ink2, C.red);
     text(ctx, "VFM", nx, ny + 4, { size: 13, weight: 600, ls: 1.5, color: C.text, align: "center" });
     text(ctx, PN.t("h_lg_physics"), nx, ny + ns / 2 + 18, { size: 9.5, ls: 1, color: C.text3, align: "center" });
     // outputs
@@ -194,7 +275,7 @@
     if (a > 0) { // history
       ctx.globalAlpha = base * a;
       const ts = 0.46, prog = clamp(l / 0.3), px = x => A.x0 + x * W, pres = x => x < ts ? 0.25 + 0.02 * Math.sin(x * 60) + (hash(Math.floor(x * 200)) - .5) * 0.015 : 0.25 + 0.6 * (1 - Math.exp(-(x - ts) / 0.05)) + 0.1 * Math.log(1 + (x - ts) * 8) / 3;
-      ctx.fillStyle = "rgba(254,91,42,.08)"; ctx.fillRect(px(ts), A.y0, W * (1 - ts), H);
+      ctx.fillStyle = "rgba(0,181,226,.08)"; ctx.fillRect(px(ts), A.y0, W * (1 - ts), H);
       text(ctx, PN.t("h_lg_shutin"), px(ts) + 10, A.y0 + 16, { size: 10, ls: 1, color: C.orange, weight: 600 });
       // rate (step down to zero)
       ctx.beginPath(); ctx.moveTo(px(0), A.y1 - H * 0.22); ctx.lineTo(px(ts), A.y1 - H * 0.22); ctx.lineTo(px(ts), A.y1 - 2); ctx.lineTo(px(1), A.y1 - 2);
@@ -230,7 +311,7 @@
       for (let i = 0; i < upto; i += stepN) {
         const x = gx(xs[i]);
         if (L.dp[i] > 0) { ctx.fillStyle = C.water; ctx.fillRect(x - 2, gy(Math.log10(L.dp[i])) - 2, 4, 4); }
-        if (L.der[i] > 0) { ctx.fillStyle = C.orange; ctx.beginPath(); ctx.arc(x, gy(Math.log10(L.der[i])), 2.3, 0, 7); ctx.fill(); }
+        if (L.der[i] > 0) { ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(x, gy(Math.log10(L.der[i])), 2.3, 0, 7); ctx.fill(); }
       }
       text(ctx, `■ ΔP   ● ${PN.t("deriv")}`, A.x0 + 40, A.y0 + 26, { size: 10, ls: .6, color: C.text2, upper: false });
       if (wa > 0) {
@@ -255,7 +336,7 @@
       // manifold pipe with flow
       const py = y + th + 18;
       ctx.strokeStyle = C.line; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(A.x0, py); ctx.lineTo(A.x1, py); ctx.stroke();
-      ctx.strokeStyle = C.orange; ctx.lineWidth = 3; ctx.setLineDash([10, 14]); ctx.lineDashOffset = -t * 30;
+      ctx.strokeStyle = C.ok; ctx.lineWidth = 3; ctx.setLineDash([10, 14]); ctx.lineDashOffset = -t * 30;
       ctx.globalAlpha = base * clamp(l / 0.4); ctx.beginPath(); ctx.moveTo(A.x0, py); ctx.lineTo(A.x1, py); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = base;
       text(ctx, `${PN.t("manifold")} ${ri ? "B" : "A"}`, A.x1, py - 6, { size: 9, ls: 1, color: C.text3, align: "right" });
       row.slice(0, cols).forEach((w, ci) => {
@@ -281,7 +362,7 @@
     const ay = A.y0 + 8 + 2 * (th + 44) + 12, ka = clamp((l - 0.35) / 0.4);
     if (ka > 0 && ay < A.y1 - 20) {
       ctx.globalAlpha = base * ka;
-      text(ctx, `■ ${PN.t("alerts")}`, A.x0, ay, { size: 10, ls: 1.2, color: C.orange, weight: 600 });
+      text(ctx, `■ ${PN.t("alerts")}`, A.x0, ay, { size: 10, ls: 1.2, color: C.red, weight: 600 });
       const lines = alertLines().slice(0, Math.max(1, Math.floor((A.y1 - ay - 10) / 24)));
       lines.forEach((a, i) => {
         const kk = clamp(ka * 3 - i * 0.6); if (kk <= 0) return;
@@ -333,6 +414,7 @@
       active = a;
       steps.forEach((el, i) => el.classList.toggle("on", i === a));
       $("stage-cap").textContent = `0${a + 1} / ${PN.t(`h_s${a + 1}_tag`)}`;
+      document.querySelector(".stage-cap .sq").style.background = ["#00B5E2", "#7BD35A", "#FF5A66", "#00B5E2", "#7BD35A"][a];
     }
     ticks.forEach((el, i) => el.style.setProperty("--f", clamp(P - i).toFixed(3)));
   }

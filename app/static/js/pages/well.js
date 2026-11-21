@@ -21,7 +21,7 @@
     const cx = 200, tub = 9, csg = 22;
     const resTop = y(datum - pay / 2), resBot = y(datum + pay / 2);
     // blueprint palette (light)
-    const K = { ink: "#18191B", t2: "#47484B", t3: "#74767A", line: "#C3C4C8", orange: "#FE5B2A", oil: "#15965A", lift: "#0891B2", gauge: "#7C3AED" };
+    const K = { ink: "#0B2341", t2: "#44546A", t3: "#5F6F84", line: "#C9D2DE", orange: "#00B5E2", oil: "#3F8A24", lift: "#0FA3B1", gauge: "#7B61FF" };
     const label = (yy, txt, val, col = K.t2) => `
       <line x1="${cx + csg + 4}" y1="${yy}" x2="${cx + 120}" y2="${yy}" stroke="${col}" stroke-dasharray="3 3" stroke-width="1"/>
       <rect x="${cx + 120}" y="${yy - 2}" width="4" height="4" fill="${col}"/>

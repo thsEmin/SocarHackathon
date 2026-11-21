@@ -22,7 +22,7 @@
     const shapes = [...PN.shade(d.shut_ins, "rgba(224,138,0,0.12)"), ...PN.shade(d.tests, "rgba(37,99,235,0.08)")];
     PN.plot(el, traces, {
       xaxis: { anchor: "y6", gridcolor: c.grid, rangeslider: { visible: false },
-               rangeselector: { x: 0, y: 1.1, bgcolor: "#FFFFFF", activecolor: "#FE5B2A", bordercolor: c.line, borderwidth: 1,
+               rangeselector: { x: 0, y: 1.1, bgcolor: "#FFFFFF", activecolor: "#D6EBF8", bordercolor: c.line, borderwidth: 1,
                                 font: { color: c.ink, size: 11 },
                                 buttons: [{ count: 7, label: "1W", step: "day", stepmode: "backward" }, { count: 1, label: "1M", step: "month", stepmode: "backward" },
                                           { count: 3, label: "3M", step: "month", stepmode: "backward" }, { step: "all", label: "All" }] } },
