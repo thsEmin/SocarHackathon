@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block hero %}{% endblock %}
+{% block scripts %}<script>PN.start({});</script>{% endblock %}
+{% block main %}
+<main class="content wrap" style="text-align:center;padding:80px 0">
+  <div class="eyebrow br">404</div>
+  <h1 class="page-title" style="color:var(--ink)" data-i18n="nf_title"></h1>
+  <p class="page-sub" style="color:var(--text-2);margin:12px auto 28px;max-width:480px" data-i18n="nf_text"></p>
+  <a class="btn primary" style="display:inline-flex;width:auto" href="/overview"><span data-i18n="nf_btn"></span></a>
+</main>
+{% endblock %}

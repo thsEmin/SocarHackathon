@@ -41,7 +41,7 @@ water = oil × water-oil ratio      gas = oil × gas-oil ratio
 ```
 
 - **IPR term:** oil inflow is proportional to the drawdown, Pres − Pwf. So a short-term rise in Pwf of ΔP lowers the rate by about ΔP / drawdown. **The drawdown comes from our own build-up analysis**, measured from pressure only (6 wells; the other 4 use the median, 390 psi).
-- **The data confirm the physics.** When the strength of the IPR term (λ) is left free, the well tests choose **λ = 0.88**, close to the theoretical 1.0.
+- **The data confirm the physics.** When the strength of the IPR term (λ) is left free, the well tests choose **λ = 0.86**, close to the theoretical 1.0.
 - **Learned effects are sign-constrained:** a more open choke gives more oil, never less.
 - **Why the first model (v1) was rejected.** It was slightly more accurate at the test points, but it learned "higher downhole pressure means more oil". That is true over months (depletion) but wrong within a day.
 
@@ -50,7 +50,7 @@ water = oil × water-oil ratio      gas = oil × gas-oil ratio
 | | v1 (unconstrained ML) | v2 (physics-hybrid, final) |
 |---|---|---|
 | Oil change during the outage | **+1% to +68%** (wrong direction) | **−3% to −19%** on all 10 wells |
-| Normal days vs test level | 0% (ignores back-pressure) | **−2.3%** (back-pressure effect) |
+| Normal days vs test level | 0% (ignores back-pressure) | **−2.2%** (back-pressure effect) |
 
 ## 4. VFM validation (no leakage: each test is hidden before fitting)
 
@@ -60,10 +60,10 @@ MAPE %, lower is better:
 |---|---|---|---|
 | Dummy: well average | 8.1 | 7.1 | 9.9 |
 | Dummy: straight line between tests | 4.1 | 4.7 | 7.7 |
-| v1: unconstrained ML | 2.6 | 3.1 | 6.1 |
-| **v2: physics-hybrid (final)** | **2.5** | **3.7** | **6.2** |
+| v1: unconstrained ML | 2.6 | 3.1 | 6.0 |
+| **v2: physics-hybrid (final)** | **2.5** | **3.6** | **6.1** |
 
-These are leave-one-test-out scores. Hiding each well's **last 2 tests** gives oil 3.4%, water 4.4% and gas 5.9% for v2.
+These are leave-one-test-out scores. Hiding each well's **last 2 tests** gives oil 2.8%, water 4.0% and gas 5.4% for v2. The shrinkage of the learned oil effects was lowered (alpha 0.3 to 0.03) after checking both splits; the outage response did not change.
 
 Test points can't measure the normal-day back-pressure effect or behaviour in upsets. That's why we chose v2 even where v1 scores slightly better at test points.
 
@@ -90,12 +90,12 @@ Test points can't measure the normal-day back-pressure effect or behaviour in up
 
 | Well | m (psi/cycle) | k (mD) | Skin | ΔP skin (psi) | What it means |
 |---|---|---|---|---|---|
-| GL-01 | 23.3 | 106.7 | **+5.7** | +116 | **Damaged**, flow efficiency 0.68, so a stimulation candidate. Boundary felt at about 660 ft. |
-| GL-02 | 52.7 | 58.0 | −0.6 | −25 | Healthy |
-| GL-04 | 145.0 | 55.3 | −1.3 | −158 | Stimulated or fractured near the well |
-| GL-06 | 15.0 | 297.5 | +2.0 | +25 | Very permeable rock, mild damage |
-| GL-08 | 93.5 | 43.0 | −1.7 | −136 | Stimulated or fractured near the well |
-| GL-10 | 28.9 | 180.3 | +2.0 | +50 | Mild damage. Boundary felt at about 490 ft. |
+| GL-01 | 23.3 | 107.8 | **+5.7** | +116 | **Damaged**, flow efficiency 0.68, so a stimulation candidate. Boundary felt at about 670 ft. |
+| GL-02 | 52.7 | 58.3 | −0.6 | −25 | Healthy |
+| GL-04 | 145.0 | 55.5 | −1.3 | −158 | Stimulated or fractured near the well |
+| GL-06 | 15.0 | 296.1 | +2.0 | +25 | Very permeable rock, mild damage |
+| GL-08 | 93.5 | 43.1 | −1.7 | −136 | Stimulated or fractured near the well |
+| GL-10 | 28.9 | 181.2 | +2.0 | +50 | Mild damage. Boundary felt at about 490 ft. |
 
 ## 7. Quality assurance
 

@@ -137,7 +137,9 @@ class HybridOilVFM:
     """log q = a_w + per-well trend + sign-constrained learned effects + lam * IPR term.
     lam=None -> lam is learned from the data (diagnostic); lam=1 -> pure IPR physics."""
 
-    def __init__(self, feats=OIL_FEATS, signs=OIL_SIGNS, lam=1.0, alpha=0.3):
+    # alpha 0.3 -> 0.03: validated on leave-one-test-out and on hiding each well's last 2-4 tests
+    # (oil forward error 3.35 -> 2.84 %); the 14-Jun lift-gas outage response did not change.
+    def __init__(self, feats=OIL_FEATS, signs=OIL_SIGNS, lam=1.0, alpha=0.03):
         self.feats, self.signs, self.lam, self.alpha = feats, signs, lam, alpha
 
     def _X(self, df):

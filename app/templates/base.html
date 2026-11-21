@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PetroNova · {{ page|capitalize }}</title>
+  {% set titles = {'whatif': 'What-if', 'pta': 'PTA', 'vfm': 'VFM', 'notfound': 'Page not found'} %}
+  <title>PetroNova · {{ titles.get(page, page|capitalize) }}</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/socar-favicon.png') }}?v=2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
@@ -21,14 +22,14 @@
     <nav class="nav" aria-label="Main">
       <a href="/" data-page="home"><span data-i18n="n_home"></span></a>
       <a href="/overview" data-page="overview"><span data-i18n="n_overview"></span></a>
-      <a href="/problems" data-page="problems"><span data-i18n="n_problems"></span></a>
       <a href="/data" data-page="data"><span data-i18n="n_data"></span></a>
       <a href="/sensors" data-page="sensors"><span data-i18n="n_sensors"></span></a>
       <a href="/vfm" data-page="vfm"><span data-i18n="n_vfm"></span></a>
-      <a href="/whatif" data-page="whatif"><span data-i18n="n_whatif"></span></a>
       <a href="/pta" data-page="pta"><span data-i18n="n_pta"></span></a>
-      <a href="/well" data-page="well"><span data-i18n="n_well"></span></a>
       <a href="/export" data-page="export"><span data-i18n="n_export"></span></a>
+      <a href="/problems" data-page="problems"><span data-i18n="n_problems"></span></a>
+      <a href="/whatif" data-page="whatif"><span data-i18n="n_whatif"></span></a>
+      <a href="/well" data-page="well"><span data-i18n="n_well"></span></a>
     </nav>
     <div class="topbar-right">
       <div class="units" id="units"><button class="units-btn" type="button" aria-haspopup="true"><span data-i18n="u_units"></span><span class="units-cur mono"></span></button><div class="units-pop hidden"></div></div>
