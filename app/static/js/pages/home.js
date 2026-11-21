@@ -1,4 +1,4 @@
-/* PetroNova home: animated intro field, scroll-driven "how it works" story, live numbers. */
+/* PetroNova home: "how it works" story card inside the scroll hero, live numbers, reveals. */
 (function () {
   const $ = id => document.getElementById(id);
   const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -6,11 +6,12 @@
   const lerp = (a, b, k) => a + (b - a) * k;
   const ease = k => (k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
   const hash = (i, s = 0) => { const x = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
-  // bright variants for the dark stage
-  // SOCAR palette, brightened for the navy stage: "orange" is the highlight role (logo blue)
-  const C = { ink: "#0B2341", ink2: "#12305A", line: "#24446E", text: "#F1F5FA", text2: "#A9BCD3", text3: "#7C93B0",
-              orange: "#00B5E2", red: "#FF5A66", oil: "#7BD35A", water: "#5B9BFF", gas: "#FF6B74", dhp: "#B39DFF", temp: "#F48FB1",
-              lift: "#5EEAD4", ok: "#7BD35A", warn: "#F5B841", alarm: "#FF5A66", radial: "rgba(123,211,90," };
+  // story card colours, taken from the hero photo: sunset amber / gold / coral on warm dark earth
+  // ("orange" is the highlight role; oil stays green and water blue so the meaning is unchanged)
+  const C = { ink: "#1A120D", ink2: "#2B1D15", line: "#4D3A2C", text: "#FBEFE3", text2: "#DCC6B2", text3: "#B0957F",
+              orange: "#FFA43A", red: "#FF5E4D", oil: "#9BD86B", water: "#7DB4EA", gas: "#FF7A66", dhp: "#FFD37A", temp: "#FF8A5B",
+              lift: "#EBD7B4", ok: "#9BD86B", warn: "#F5B841", alarm: "#FF5E4D", radial: "rgba(155,216,107," };
+  const STEP_COL = ["#FFA43A", "#9BD86B", "#FF5E4D", "#FFD37A", "#9BD86B"];
 
   // ------------------------------------------------------------------ data (live, with fallbacks)
   const D = {
@@ -52,122 +53,9 @@
             m * m * m * p0[1] + 3 * m * m * u * p1[1] + 3 * m * u * u * p2[1] + u * u * u * p3[1]];
   }
 
-  // ------------------------------------------------------------------ 1 · hero: isobar field around a producing well
-  const hero = canvas($("hero-canvas"));
-  function drawHero(t, sy) {
-    const { ctx, w, h } = hero;
-    ctx.clearRect(0, 0, w, h);
-    if (!w || !h) return;
-    const G = ground(w, h), lay = G.layers, wx = G.wx;
-    ctx.save(); ctx.translate(0, -sy * 0.28);   // the ground scrolls a little slower than the page
-
-    // 1 strata: each layer fills from its top boundary down; deeper layers paint over
-    lay.forEach(L => {
-      const path = () => { ctx.beginPath(); for (let x = 0; x <= w + 8; x += 8) { const y = L.y(x); x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } };
-      path(); ctx.lineTo(w + 8, h * 2); ctx.lineTo(0, h * 2); ctx.closePath();
-      ctx.fillStyle = L.fill; ctx.fill();
-      if (L.pat) { ctx.fillStyle = L.pat; ctx.fill(); }
-      path(); ctx.strokeStyle = L.edge; ctx.lineWidth = L.edgeW || 1; if (L.dash) ctx.setLineDash(L.dash); ctx.stroke(); ctx.setLineDash([]);
-    });
-    const res = lay[5], wat = lay[6], yS = lay[0].y(wx), yMid = x => (res.y(x) + wat.y(x)) / 2;
-
-    // 2 reservoir life (clipped to the oil zone): pressure waves + oil drops moving to the well
-    ctx.save(); ctx.beginPath();
-    for (let x = 0; x <= w + 8; x += 8) { const y = res.y(x); x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
-    for (let x = w + 8; x >= 0; x -= 8) ctx.lineTo(x, wat.y(x));
-    ctx.closePath(); ctx.clip();
-    for (let k = 0; k < 3; k++) {
-      const ph = (t * 0.3 + k / 3) % 1, rx = 18 + ph * w * 0.42;
-      ctx.strokeStyle = `rgba(123,211,90,${0.4 * (1 - ph)})`; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.ellipse(wx, yMid(wx), rx, rx * 0.2, 0, 0, 7); ctx.stroke();
-    }
-    for (let i = 0; i < 54; i++) {
-      const side = i % 2 ? 1 : -1, sp = 0.035 + hash(i, 3) * 0.05, u = (hash(i, 1) + t * sp) % 1;
-      const x = wx + side * Math.pow(1 - u, 1.3) * w * 0.45, yy = lerp(res.y(x), wat.y(x), 0.2 + hash(i, 2) * 0.6);
-      const a = clamp(u * 4) * clamp((1 - u) * 8);
-      ctx.fillStyle = `rgba(123,211,90,${0.9 * a})`; ctx.beginPath(); ctx.arc(x, yy, 1.3 + hash(i, 4) * 1.5, 0, 7); ctx.fill();
-    }
-    ctx.restore();
-    // water zone shimmer (blue)
-    for (let k = 0; k < 3; k++) {
-      ctx.beginPath();
-      for (let x = 0; x <= w; x += 10) { const y = wat.y(x) + 14 + k * 16 + Math.sin(x * 0.018 + t * 1.2 + k * 2) * 2.5; x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
-      ctx.strokeStyle = `rgba(91,155,255,${0.22 - k * 0.05})`; ctx.lineWidth = 1; ctx.stroke();
-    }
-
-    // 3 the well: casing, lift gas down the annulus (red), oil up the tubing (green)
-    const bot = yMid(wx) + 10, valveY = lay[3].y(wx) + 12;
-    ctx.fillStyle = "rgba(8,18,32,.9)"; ctx.fillRect(wx - 8, yS, 16, bot - yS);
-    ctx.strokeStyle = "rgba(241,245,250,.6)"; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(wx - 8.5, yS); ctx.lineTo(wx - 8.5, bot); ctx.moveTo(wx + 8.5, yS); ctx.lineTo(wx + 8.5, bot); ctx.stroke();
-    ctx.setLineDash([4, 6]); ctx.lineWidth = 1.4; ctx.strokeStyle = "rgba(255,90,102,.9)"; ctx.lineDashOffset = -t * 30;
-    ctx.beginPath(); ctx.moveTo(wx - 5.5, yS); ctx.lineTo(wx - 5.5, valveY); ctx.moveTo(wx + 5.5, yS); ctx.lineTo(wx + 5.5, valveY); ctx.stroke();
-    ctx.strokeStyle = C.oil; ctx.lineWidth = 2.4; ctx.setLineDash([9, 7]); ctx.lineDashOffset = t * 45;
-    ctx.beginPath(); ctx.moveTo(wx, bot); ctx.lineTo(wx, yS); ctx.stroke(); ctx.setLineDash([]);
-    for (let k = 0; k < 10; k++) { // gas bubbles lifting the oil above the valve
-      const span = valveY - yS, yy = valveY - ((t * 70 + k * span / 10) % span);
-      ctx.fillStyle = `rgba(255,150,158,${0.35 + 0.6 * (yy - yS) / span})`;
-      ctx.beginPath(); ctx.arc(wx + Math.sin(t * 4 + k) * 1.6, yy, 1.9, 0, 7); ctx.fill();
-    }
-    ctx.fillStyle = C.red; ctx.fillRect(wx + 8, valveY - 4, 5, 8);
-    ctx.strokeStyle = "rgba(123,211,90,.95)"; ctx.lineWidth = 1.6;
-    for (let k = -2; k <= 2; k++) { const py = yMid(wx) + k * 7; ctx.beginPath(); ctx.moveTo(wx - 20, py); ctx.lineTo(wx - 9, py); ctx.moveTo(wx + 9, py); ctx.lineTo(wx + 20, py); ctx.stroke(); }
-    const gY = res.y(wx) + 6;
-    ctx.fillStyle = C.orange; ctx.fillRect(wx - 3, gY - 3, 6, 6);
-    if (w > 700) text(ctx, `DHP ${PN.fmt(3220 + 30 * Math.sin(t * 0.9), 0)} psia`, wx + 26, gY + 4, { mono: true, size: 11, color: C.text, upper: false });
-
-    // 4 surface: derrick, red wellhead, lift-gas line in (red) and oil flowline out (green)
-    const dh = Math.min(86, h * 0.11);
-    ctx.strokeStyle = "rgba(241,245,250,.55)"; ctx.lineWidth = 1.2; ctx.beginPath();
-    ctx.moveTo(wx - 24, yS); ctx.lineTo(wx - 4, yS - dh); ctx.lineTo(wx + 4, yS - dh); ctx.lineTo(wx + 24, yS);
-    for (let k = 1; k <= 4; k++) { const f = k / 5, y = yS - dh * f, half = 24 - 20 * f, y2 = yS - dh * (k - 1) / 5, h2 = 24 - 20 * (k - 1) / 5; ctx.moveTo(wx - half, y); ctx.lineTo(wx + half, y); ctx.moveTo(wx - h2, y2); ctx.lineTo(wx + half, y); }
-    ctx.stroke();
-    ctx.fillStyle = `rgba(255,90,102,${0.55 + 0.45 * Math.abs(Math.sin(t * 2))})`; ctx.beginPath(); ctx.arc(wx, yS - dh - 4, 3, 0, 7); ctx.fill();
-    box(ctx, wx - 10, yS - 13, 20, 13, C.red);
-    ctx.lineWidth = 2; ctx.setLineDash([7, 6]);
-    ctx.strokeStyle = "rgba(255,90,102,.85)"; ctx.lineDashOffset = -t * 30; ctx.beginPath(); ctx.moveTo(wx - w * 0.22, lay[0].y(wx - w * 0.22) - 3); ctx.lineTo(wx - 10, yS - 4); ctx.stroke();
-    ctx.strokeStyle = C.oil; ctx.lineDashOffset = -t * 40; ctx.beginPath(); ctx.moveTo(wx + 10, yS - 6); ctx.lineTo(w + 10, lay[0].y(w) - 3); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // 5 layer names on the right
-    if (w > 760) lay.forEach((L, i) => {
-      if (!L.name || !lay[i + 1]) return;
-      const xl = w - 26, ym = (L.y(xl) + lay[i + 1].y(xl)) / 2 + 4;
-      text(ctx, PN.t(L.name), xl, ym, { size: 10.5, ls: 1.2, align: "right", weight: 600, color: L.label || "rgba(241,245,250,.42)" });
-    });
-    ctx.restore();
-  }
-
-  // geology is rebuilt only when the hero size changes
-  let GC = null;
-  function tile(draw, s = 28) { const c = document.createElement("canvas"); c.width = c.height = s; draw(c.getContext("2d"), s); return hero.ctx.createPattern(c, "repeat"); }
-  function ground(w, h) {
-    if (GC && GC.w === w && GC.h === h) return GC;
-    const wx = w * (w > 1100 ? 0.72 : 0.88), S = Math.max(170, w * 0.21);
-    const dome = (x, d) => -d * Math.exp(-(((x - wx) / S) ** 2));      // anticline: the classic oil trap
-    const dots = (col, n, r = 1) => tile((g, s) => { g.fillStyle = col; for (let i = 0; i < n; i++) { g.beginPath(); g.arc(hash(i, 11) * s, hash(i, 12) * s, r * (0.6 + hash(i, 13) * 0.9), 0, 7); g.fill(); } });
-    const strokes = (col, gap, dash) => tile((g, s) => { g.strokeStyle = col; g.lineWidth = 1; g.setLineDash(dash || []); for (let y = gap / 2; y < s; y += gap) { g.beginPath(); g.moveTo(0, Math.round(y) + .5); g.lineTo(s, Math.round(y) + .5); g.stroke(); } });
-    const bricks = col => tile((g, s) => { g.strokeStyle = col; g.lineWidth = 1; const r = s / 2;
-      for (let k = 0; k < 2; k++) { g.beginPath(); g.moveTo(0, k * r + .5); g.lineTo(s, k * r + .5); g.moveTo((k ? s / 2 : 0) + .5, k * r); g.lineTo((k ? s / 2 : 0) + .5, k * r + r); g.stroke(); } }, 32);
-    const L = (base, o) => Object.assign({ edge: "rgba(255,255,255,.08)",
-      y: x => h * base + (o.a || 5) * Math.sin(x * (o.f || 0.004) + (o.p || 0)) + 2 * Math.sin(x * 0.013 + (o.p || 0) * 3) + (o.d ? dome(x, h * o.d) : 0) }, o);
-    GC = { w, h, wx, layers: [
-      // depths are fractions of the hero height; the oil zone sits above the fact cards
-      L(.30, { name: "h_g_soil", fill: "#3B3127", pat: dots("rgba(255,226,180,.10)", 14), a: 6, f: .006, edge: "rgba(123,211,90,.55)", edgeW: 2 }),
-      L(.37, { name: "h_g_shale", fill: "#2D2C33", pat: strokes("rgba(255,255,255,.05)", 5, [6, 4]), a: 4, p: 1, d: .012 }),
-      L(.43, { name: "h_g_sand", fill: "#443625", pat: dots("rgba(255,214,160,.13)", 26), a: 5, p: 2, d: .022 }),
-      L(.49, { name: "h_g_lime", fill: "#30353F", pat: bricks("rgba(255,255,255,.065)"), a: 4, p: 3, d: .032 }),
-      L(.545, { name: "h_g_cap", fill: "#222229", pat: strokes("rgba(255,255,255,.04)", 3), a: 3, p: 4, d: .042 }),
-      L(.575, { name: "h_g_res", fill: "#24341E", pat: dots("rgba(123,211,90,.2)", 22), a: 3, p: 4.4, d: .05, edge: "rgba(123,211,90,.6)", edgeW: 1.5, label: "rgba(123,211,90,.9)" }),
-      L(.70, { name: "h_g_water", fill: "#13294A", pat: strokes("rgba(91,155,255,.12)", 6, [3, 5]), a: 3, p: 5, d: .035, edge: "rgba(91,155,255,.65)", dash: [6, 5], label: "rgba(120,170,255,.95)" }),
-      L(.86, { fill: "#0D1828", a: 3, p: 6, d: .015 }),
-    ] };
-    return GC;
-  }
-
   // ------------------------------------------------------------------ 2 · story stage
   const stage = canvas($("story-canvas"));
-  const area = () => { const { w, h } = stage; return { x0: 26, y0: 58, x1: w - 26, y1: h - 50, w, h }; };
+  const area = () => { const { w, h } = stage; return { x0: 16, y0: 44, x1: w - 16, y1: h - 30, w, h }; };
 
   // scene A (steps 1-2): raw sensor lanes, cleaned by a sweep
   const LANES = [
@@ -218,7 +106,7 @@
     }
     // legend
     const lx = A.x1;
-    text(ctx, `■ ${PN.t("h_lg_spike")}   ■ ${PN.t("h_lg_gap")}`, lx, A.h - 34, { size: 9.5, ls: .8, color: C.text3, align: "right" });
+    text(ctx, `■ ${PN.t("h_lg_spike")}   ■ ${PN.t("h_lg_gap")}`, lx, 28, { size: 9.5, ls: .8, color: C.text3, align: "right" });
   }
 
   // scene B (step 3): sensors -> VFM node -> oil / water / gas
@@ -265,7 +153,7 @@
       }
       ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(bx0, yy + bh * 0.5 + .5); ctx.lineTo(A.x1, yy + bh * 0.5 + .5); ctx.stroke();
     });
-    text(ctx, `◇ ${PN.t("h_lg_test")}`, A.x1, A.h - 34, { size: 9.5, ls: .8, color: C.text3, align: "right" });
+    text(ctx, `◇ ${PN.t("h_lg_test")}`, A.x1, 28, { size: 9.5, ls: .8, color: C.text3, align: "right" });
   }
 
   // scene C (step 4): build-up after a shut-in, then the log-log diagnostic
@@ -399,22 +287,28 @@
 
   // ------------------------------------------------------------------ scroll state
   const steps = [...document.querySelectorAll(".step")], ticks = [...document.querySelectorAll("#stage-ticks i")];
+  const hero = $("hero"), pin = document.querySelector(".h-pin"), story = $("hero-story");
+  const STORY0 = 0.12, STORY1 = 0.93;   // share of the hero runway the five steps use (matches hero-scrub.js fades)
   let P = 0, Ps = 0, active = -1, sy = 0;
   function onScroll() {
     sy = window.scrollY;
     const doc = document.documentElement, max = doc.scrollHeight - innerHeight;
     $("scroll-bar").style.transform = `scaleX(${max > 0 ? sy / max : 0})`;
-    const mid = innerHeight * (innerWidth <= 900 ? 0.72 : 0.55);
-    let p = 0;
-    steps.forEach((el, i) => { const r = el.getBoundingClientRect(); if (r.top <= mid) p = i + clamp((mid - r.top) / r.height); });
-    P = clamp(p, 0, 5);
+    // the five steps play inside the pinned hero: step progress comes from how far the hero has scrolled
+    const hr = hero.getBoundingClientRect(), run = hr.height - pin.getBoundingClientRect().height;
+    const hp = run > 0 ? clamp(-hr.top / run) : 0;
+    P = 5 * clamp((hp - STORY0) / (STORY1 - STORY0)) * 0.999;
+    const show = clamp((hp - STORY0 + 0.04) / 0.04) * (1 - clamp((hp - 0.95) / 0.025));
+    story.style.opacity = show.toFixed(3);
+    story.style.transform = `translateY(${((1 - show) * 24).toFixed(1)}px)`;
+    vis.on = show > 0.01;
     if (RM) Ps = P;
     const a = Math.min(4, Math.floor(P));
     if (a !== active) {
       active = a;
       steps.forEach((el, i) => el.classList.toggle("on", i === a));
       $("stage-cap").textContent = `0${a + 1} / ${PN.t(`h_s${a + 1}_tag`)}`;
-      document.querySelector(".stage-cap .sq").style.background = ["#00B5E2", "#7BD35A", "#FF5A66", "#00B5E2", "#7BD35A"][a];
+      document.querySelector(".stage-cap .sq").style.background = STEP_COL[a];
     }
     ticks.forEach((el, i) => el.style.setProperty("--f", clamp(P - i).toFixed(3)));
   }
@@ -422,9 +316,7 @@
   addEventListener("resize", onScroll);
 
   // render only what is on screen
-  const vis = { hero: true, stage: false };
-  new IntersectionObserver(es => es.forEach(e => { vis[e.target.id === "hero-canvas" ? "hero" : "stage"] = e.isIntersecting; }))
-    .observe($("hero-canvas"));
+  const vis = { stage: false, on: false };
   new IntersectionObserver(es => es.forEach(e => { vis.stage = e.isIntersecting; })).observe($("story-canvas"));
 
   let t = 0, last = performance.now();
@@ -432,8 +324,7 @@
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     if (!RM) t += dt;
     Ps += (P - Ps) * (RM ? 1 : Math.min(1, dt * 7));
-    if (vis.hero) drawHero(t, sy);
-    if (vis.stage) drawStage(t, Ps);
+    if (vis.stage && vis.on) drawStage(t, Ps);
     requestAnimationFrame(frame);
   }
 

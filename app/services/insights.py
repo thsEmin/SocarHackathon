@@ -53,10 +53,28 @@ def well_status(ds):
     return out
 
 
-def overview(ds):
+def _day(v):
+    try:
+        return pd.Timestamp(v).normalize() if v else None
+    except (ValueError, TypeError):
+        return None
+
+
+def overview(ds, start=None, end=None):
+    """Field overview for a period (default: the whole dataset). "Today" = the last day of the period;
+    the 30-day comparison may look before the period start. Well status/problems use all data."""
     from . import diagnostics
     s = store.shared()
-    p = ds.preds.sort_values(["well_name", "date"])
+    full = ds.preds.sort_values(["well_name", "date"])
+    first_all, last_all = full.date.min(), full.date.max()
+    a, b = _day(start) or first_all, _day(end) or last_all
+    clip = lambda d: min(max(d, first_all), last_all)     # keep both ends inside the data
+    a, b = clip(a), clip(b)
+    if a > b:
+        a, b = b, a
+    p = full[(full.date >= a) & (full.date <= b)]
+    if p.empty:                                   # nothing in the period: fall back to all data
+        p, a, b = full, first_all, last_all
     last = p.date.max()
     status = well_status(ds)
     pta_rows = {r["well_name"]: r for r in pta_service.events(ds)}
@@ -65,7 +83,8 @@ def overview(ds):
         today = g[g.date == last].iloc[0]
         prod = g[g.shut_frac == 0]
         spark = prod[prod.date > last - pd.Timedelta(days=90)]
-        decline = diagnostics.decline_pct_yr(g)
+        # decline trend over the period; too few producing days -> use the whole history
+        decline = diagnostics.decline_pct_yr(g if (prod.oil_rate_stbd > 0).sum() > 10 else full[full.well_name == w])
         liq = today.oil_rate_stbd + today.water_rate_stbd
         r = pta_rows.get(w)
         wells.append({
@@ -78,23 +97,27 @@ def overview(ds):
             "k": r["permeability_md"] if r else None, "skin": r["skin"] if r else None,
             **status[w]})
     tot = p[p.date == last][T].sum()
-    prev = p[p.date == last - pd.Timedelta(days=30)][T].sum()
+    prev = full[full.date == last - pd.Timedelta(days=30)][T].sum()
     alerts = []
     for w in wells:
         for rs in w["reasons"]:
             alerts.append({"well": w["well"], **rs})
     for e in lift_gas_events(ds):
-        alerts.append({"level": "warning", "well": None, "key": "ev_liftgas", **e})
+        if a <= pd.Timestamp(e["start"]).normalize() <= b:
+            alerts.append({"level": "warning", "well": None, "key": "ev_liftgas", **e})
     flags = p[(p.no_data) | (p.low_coverage & ~p.no_data)]
     if len(flags):
         alerts.append({"level": "info", "well": None, "key": "ev_datagaps", "n": int(len(flags))})
     for _, ev in ds.shut.iterrows():
+        if not (a <= ev.shut_start.normalize() <= b):
+            continue
         alerts.append({"level": "info", "well": ev.well_name, "key": "ev_shutin",
                        "start": ev.shut_start.isoformat(), "hours": round(float(ev.duration_hr), 1)})
     order = {"alarm": 0, "warning": 1, "info": 2}
     alerts.sort(key=lambda a: order[a["level"]])
     fastest = min(wells, key=lambda x: x["decline_pct_yr"])
     return {"date": str(last.date()), "wells": wells, "alerts": alerts,
+            "range": {"start": str(a.date()), "end": str(b.date()), "first": str(first_all.date()), "last": str(last_all.date())},
             "totals": {k: float(v) for k, v in tot.items()},
             "totals_prev30": {k: float(v) for k, v in prev.items()},
             "period_cum_oil": float(p.oil_rate_stbd.sum()),

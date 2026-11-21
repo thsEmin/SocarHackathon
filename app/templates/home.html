@@ -5,104 +5,79 @@
 <div class="scroll-bar" id="scroll-bar"></div>
 
 <!-- 1 · intro -->
-<section class="h-hero">
-  <canvas class="h-hero-bg" id="hero-canvas" aria-hidden="true"></canvas>
-  <div class="wrap h-hero-in">
-    <div class="eyebrow br on-ink" data-i18n="h_eyebrow"></div>
-    <h1 class="h-title">
-      <span class="line"><span data-i18n="h_t1"></span></span>
-      <span class="line"><span class="mark" data-i18n="h_t2"></span></span>
-    </h1>
-    <p class="h-lead" data-i18n="h_lead"></p>
-    <div class="h-cta">
-      <a class="btn primary" href="/overview"><span data-i18n="h_cta_open"></span><span class="arr">→</span></a>
-      <a class="btn light" href="#story"><span data-i18n="h_cta_how"></span><span class="arr">↓</span></a>
-    </div>
-  </div>
-  <div class="wrap h-facts">
-    <div class="fact"><div class="v" id="f-wells">10</div><div class="l" data-i18n="h_f_wells"></div></div>
-    <div class="fact"><div class="v" id="f-days">273</div><div class="l" data-i18n="h_f_days"></div></div>
-    <div class="fact"><div class="v" id="f-shut">—</div><div class="l" data-i18n="h_f_shut"></div></div>
-    <div class="fact"><div class="v">57</div><div class="l" data-i18n="h_f_checks"></div></div>
-  </div>
-  <div class="h-scroll-hint" aria-hidden="true"><span data-i18n="h_scroll"></span><i></i></div>
-</section>
-{% endblock %}
+<!-- two-stage scroll hero (620vh runway, picture pinned):
+     0-45%  pumpjack downstroke · 45-95%  camera dives down the wellbore · 95-100%  fade into the page.
+     The five "how it works" steps play on the right while it scrolls (12%-93%).
+     Frames + manifest.json are made by build_scroll_frames.py -->
+<section class="h-hero" id="hero" data-frames="{{ url_for('static', filename='frames/') }}">
+  <div class="h-pin" style="background-image:url('{{ url_for('static', filename='frames/frame_0001.webp') }}')">
+    <canvas class="h-hero-bg" id="hero-canvas" aria-hidden="true"></canvas>
+    <div class="h-shade" id="hero-shade" aria-hidden="true"></div>
 
-{% block main %}
-<!-- 2 · how it works: sticky scroll story -->
-<section class="story" id="story">
-  <div class="wrap story-head reveal">
-    <div class="eyebrow br" data-i18n="h_how_eyebrow"></div>
-    <h2 class="h2" data-i18n="h_how_title"></h2>
-  </div>
-  <div class="wrap story-grid">
-    <div class="story-steps">
-      {% for i in range(1, 6) %}
-      <article class="step" data-step="{{ i - 1 }}">
-        <div class="step-num">0{{ i }} <span>/ 05</span></div>
-        <div class="eyebrow" data-i18n="h_s{{ i }}_tag"></div>
-        <h3 data-i18n="h_s{{ i }}_title"></h3>
-        <p data-i18n="h_s{{ i }}_text"></p>
-      </article>
-      {% endfor %}
+    <div class="h-surface" id="hero-surface">
+      <div class="wrap h-hero-in">
+        <div class="eyebrow br on-ink" data-i18n="h_eyebrow"></div>
+        <h1 class="h-title">
+          <span class="line"><span data-i18n="h_t1"></span></span>
+          <span class="line"><span class="mark" data-i18n="h_t2"></span></span>
+        </h1>
+        <p class="h-lead" data-i18n="h_sub"></p>
+        <div class="h-cta">
+          <a class="btn primary" href="#numbers" id="hero-go"><span data-i18n="h_cta_dash"></span><span class="arr">↓</span></a>
+          <a class="btn light" href="/overview"><span data-i18n="h_cta_open"></span><span class="arr">→</span></a>
+        </div>
+      </div>
+      <div class="wrap h-facts">
+        <div class="fact"><div class="v" id="f-wells">10</div><div class="l" data-i18n="h_f_wells"></div></div>
+        <div class="fact"><div class="v" id="f-days">273</div><div class="l" data-i18n="h_f_days"></div></div>
+        <div class="fact"><div class="v" id="f-shut">—</div><div class="l" data-i18n="h_f_shut"></div></div>
+        <div class="fact"><div class="v">57</div><div class="l" data-i18n="h_f_checks"></div></div>
+      </div>
     </div>
-    <div class="story-stage">
+
+    <!-- how it works: the five steps play over the animation (right side) -->
+    <aside class="h-story" id="hero-story" aria-label="How PetroNova works">
+      <div class="hs-head"><span class="sq"></span><span data-i18n="h_how_eyebrow"></span></div>
+      <div class="hs-steps">
+        {% for i in range(1, 6) %}
+        <article class="step" data-step="{{ i - 1 }}">
+          <div class="step-num">0{{ i }} <span>/ 05</span></div>
+          <h3 data-i18n="h_s{{ i }}_title"></h3>
+          <p data-i18n="h_s{{ i }}_text"></p>
+        </article>
+        {% endfor %}
+      </div>
       <div class="stage">
         <canvas id="story-canvas" aria-label="Animated explanation of the PetroNova workflow"></canvas>
         <div class="stage-cap"><span class="sq"></span><span id="stage-cap"></span></div>
         <div class="stage-ticks" id="stage-ticks"><i></i><i></i><i></i><i></i><i></i></div>
-        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
       </div>
+    </aside>
+
+    <!-- subsurface HUD: layer label next to the wellbore + TVD gauge on the right -->
+    <div class="h-layers" id="hero-layers" aria-hidden="true">
+      <div class="h-layer" data-layer="soil"><span class="sq"></span><span data-i18n="h_l_soil"></span></div>
+      <div class="h-layer" data-layer="shale"><span class="sq"></span><span data-i18n="h_l_shale"></span></div>
+      <div class="h-layer" data-layer="sand"><span class="sq"></span><span data-i18n="h_l_sand"></span></div>
+      <div class="h-layer target" data-layer="res"><span class="sq"></span><span><span data-i18n="h_l_res"></span><small data-i18n="h_l_res_note"></small></span></div>
     </div>
+    <div class="h-gauge" id="hero-gauge" aria-hidden="true">
+      <div class="g-head">TVD</div>
+      <div class="g-track"><i class="g-fill" id="hero-gfill"></i><span class="g-dot" id="hero-gdot"></span>
+        <span class="g-tick" style="top:0%"><b>0</b></span><span class="g-tick" style="top:33.9%"><b>1000</b></span>
+        <span class="g-tick" style="top:67.8%"><b>2000</b></span><span class="g-tick" style="top:100%"><b>2950</b></span></div>
+      <div class="g-val"><b id="hero-depth">0</b> m</div>
+    </div>
+
+    <div class="h-fade" id="hero-fade" aria-hidden="true"></div>
+    <div class="h-stroke" aria-hidden="true"><i id="hero-prog"></i></div>
   </div>
 </section>
+{% endblock %}
 
-<!-- 3 · two engines -->
-<section class="engines">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <div class="eyebrow br" data-i18n="h_core_eyebrow"></div>
-      <h2 class="h2" data-i18n="h_core_title"></h2>
-    </div>
-    <div class="engine-grid">
-      <article class="engine reveal">
-        <div class="engine-art"><svg viewBox="0 0 200 120" class="art-vfm" aria-hidden="true">
-          <path class="in" d="M0 30 C60 30 70 60 100 60"/><path class="in" d="M0 60 L100 60"/><path class="in" d="M0 90 C60 90 70 60 100 60"/>
-          <rect x="88" y="48" width="24" height="24" class="node"/>
-          <path class="out oil" d="M112 60 C140 60 150 28 200 28"/><path class="out water" d="M112 60 L200 60"/><path class="out gas" d="M112 60 C140 60 150 92 200 92"/>
-        </svg></div>
-        <div class="engine-body">
-          <div class="eyebrow" data-i18n="h_vfm_tag"></div>
-          <h3 data-i18n="p_vfm"></h3>
-          <p class="q" data-i18n="h_vfm_q"></p>
-          <p data-i18n="h_vfm_text"></p>
-          <dl class="io"><dt data-i18n="h_in"></dt><dd data-i18n="h_vfm_in"></dd><dt data-i18n="h_out"></dt><dd data-i18n="h_vfm_out"></dd></dl>
-          <a class="link-arrow" href="/vfm"><span data-i18n="h_open"></span> →</a>
-        </div>
-      </article>
-      <article class="engine reveal">
-        <div class="engine-art"><svg viewBox="0 0 200 120" class="art-pta" aria-hidden="true">
-          <path class="axis" d="M14 8 V108 H196"/>
-          <path class="dp" d="M20 100 C50 70 70 40 110 30 S170 24 192 22"/>
-          <path class="der" d="M20 104 C45 70 60 40 80 46 S100 66 120 66 L192 66"/>
-          <rect x="112" y="10" width="54" height="96" class="win"/>
-        </svg></div>
-        <div class="engine-body">
-          <div class="eyebrow" data-i18n="h_pta_tag"></div>
-          <h3 data-i18n="p_pta"></h3>
-          <p class="q" data-i18n="h_pta_q"></p>
-          <p data-i18n="h_pta_text"></p>
-          <dl class="io"><dt data-i18n="h_in"></dt><dd data-i18n="h_pta_in"></dd><dt data-i18n="h_out"></dt><dd data-i18n="h_pta_out"></dd></dl>
-          <a class="link-arrow" href="/pta"><span data-i18n="h_open"></span> →</a>
-        </div>
-      </article>
-    </div>
-  </div>
-</section>
-
+{% block main %}
 <!-- 4 · live numbers -->
-<section class="numbers">
+<section class="numbers" id="numbers">
   <div class="wrap">
     <div class="sec-head reveal">
       <div class="eyebrow br on-ink" data-i18n="h_num_eyebrow"></div>
@@ -148,4 +123,5 @@
 </section>
 {% endblock %}
 
-{% block scripts %}<script src="{{ url_for('static', filename='js/pages/home.js') }}"></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/pages/hero-scrub.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pages/home.js') }}"></script>{% endblock %}

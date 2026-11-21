@@ -15,7 +15,7 @@
 <header class="topbar">
   <div class="wrap topbar-in">
     <a class="brand" href="/" aria-label="SOCAR · PetroNova home">
-      <img class="brand-logo" src="{{ url_for('static', filename='img/socar-logo.webp') }}" alt="SOCAR">
+      <img class="brand-logo" src="{{ url_for('static', filename='img/socar-logo-light.webp') }}" alt="SOCAR">
       <span class="brand-sep" aria-hidden="true"></span>
       <span class="brand-name">PetroNova</span>
     </a>
@@ -37,6 +37,7 @@
     </div>
   </div>
 </header>
+<div class="topbar-hint" aria-hidden="true"></div>
 
 {% block hero %}
 <section class="hero g-{{ group[4:] }}">
@@ -47,7 +48,15 @@
       <p class="page-sub" data-i18n="s_{{ page }}"></p>
     </div>
     <div class="hero-ctl">
+      {% if page == 'overview' %}
+      <!-- overview: pick the period (like VFM); everything on the page follows it -->
+      <div class="ctl ctl-range"><span data-i18n="rng_title"></span>
+        <div class="range-row"><span class="live-dot"></span>
+          <input type="date" id="r-from" aria-label="From"><span class="arr">→</span><input type="date" id="r-to" aria-label="To"></div></div>
+      <div class="ctl"><span>&nbsp;</span><div class="seg" id="r-quick"><button data-days="7">7d</button><button data-days="30">30d</button><button data-days="90">90d</button><button data-days="0" data-i18n="rng_all"></button></div></div>
+      {% else %}
       <div class="ctl ctl-period"><span class="live-dot"></span><span class="mono" id="ds-period"></span></div>
+      {% endif %}
       <label class="ctl"><span data-i18n="dataset"></span><select id="ds-select"></select></label>
       <label class="ctl" {% if page in ['overview', 'problems', 'data', 'export'] %}style="display:none"{% endif %}><span data-i18n="well"></span><select id="well-select"></select></label>
     </div>
