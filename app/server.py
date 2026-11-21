@@ -35,7 +35,7 @@ def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.json = SafeJSON(app)
     app.config["MAX_CONTENT_LENGTH"] = 700 * 1024 * 1024   # the full sensor file is 269 MB
-    store.load_preloaded()
+    store.load_samples(store.load_preloaded())
     store.shared()
 
     def ds():
@@ -107,6 +107,10 @@ def create_app():
     def api_pta_events():
         return jsonify(pta_service.events(ds()))
 
+    @app.get("/api/pta/skipped")
+    def api_pta_skipped():
+        return jsonify(pta_service.skipped(ds()))
+
     @app.get("/api/pta/<int:idx>")
     def api_pta_detail(idx):
         d = ds()
@@ -126,8 +130,12 @@ def create_app():
     @app.get("/api/whatif")
     def api_whatif():
         d = ds()
-        return jsonify(insights.whatif(d, well_arg(d), request.args.get("choke", 0, type=float),
-                                       request.args.get("lift", 0, type=float)))
+        # keep the scenario inside the slider ranges (choke +-10 points, lift gas +-50 %);
+        # NaN / inf / huge values would otherwise give empty or physically impossible results
+        def arg(name, lim):
+            v = request.args.get(name, 0, type=float)
+            return 0.0 if not math.isfinite(v) else max(-lim, min(lim, v))
+        return jsonify(insights.whatif(d, well_arg(d), arg("choke", 10), arg("lift", 50)))
 
     @app.post("/api/upload")
     def api_upload():

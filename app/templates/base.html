@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  {% set titles = {'whatif': 'What-if', 'pta': 'PTA', 'vfm': 'VFM', 'notfound': 'Page not found'} %}
+  {% set titles = {'whatif': 'What-if', 'pta': 'PTA', 'vfm': 'VFM', 'data': 'Import', 'notfound': 'Page not found'} %}
   <title>PetroNova · {{ titles.get(page, page|capitalize) }}</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/socar-favicon.png') }}?v=2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
@@ -22,14 +22,11 @@
     <nav class="nav" aria-label="Main">
       <a href="/" data-page="home"><span data-i18n="n_home"></span></a>
       <a href="/overview" data-page="overview"><span data-i18n="n_overview"></span></a>
-      <a href="/data" data-page="data"><span data-i18n="n_data"></span></a>
       <a href="/sensors" data-page="sensors"><span data-i18n="n_sensors"></span></a>
       <a href="/vfm" data-page="vfm"><span data-i18n="n_vfm"></span></a>
       <a href="/pta" data-page="pta"><span data-i18n="n_pta"></span></a>
-      <a href="/export" data-page="export"><span data-i18n="n_export"></span></a>
       <a href="/problems" data-page="problems"><span data-i18n="n_problems"></span></a>
       <a href="/whatif" data-page="whatif"><span data-i18n="n_whatif"></span></a>
-      <a href="/well" data-page="well"><span data-i18n="n_well"></span></a>
     </nav>
     <div class="topbar-right">
       <div class="units" id="units"><button class="units-btn" type="button" aria-haspopup="true"><span data-i18n="u_units"></span><span class="units-cur mono"></span></button><div class="units-pop hidden"></div></div>
@@ -43,6 +40,7 @@
 <section class="hero g-{{ group[4:] }}">
   <div class="wrap hero-in">
     <div>
+      {% if page in ['data', 'export', 'well'] %}<a class="back-btn" href="/overview"><span aria-hidden="true">←</span><span data-i18n="back"></span></a>{% endif %}
       <div class="eyebrow br" data-i18n="{{ group }}"></div>
       <h1 class="page-title" data-i18n="p_{{ page }}"></h1>
       <p class="page-sub" data-i18n="s_{{ page }}"></p>
@@ -53,7 +51,7 @@
       <div class="ctl ctl-range"><span data-i18n="rng_title"></span>
         <div class="range-row"><span class="live-dot"></span>
           <input type="date" id="r-from" aria-label="From"><span class="arr">→</span><input type="date" id="r-to" aria-label="To"></div></div>
-      <div class="ctl"><span>&nbsp;</span><div class="seg" id="r-quick"><button data-days="7">7d</button><button data-days="30">30d</button><button data-days="90">90d</button><button data-days="0" data-i18n="rng_all"></button></div></div>
+      <div class="ctl"><span>&nbsp;</span><div class="seg" id="r-quick"><button data-days="1">1d</button><button data-days="7">7d</button><button data-days="30">30d</button><button data-days="90">90d</button><button data-days="0" data-i18n="rng_all"></button></div></div>
       {% else %}
       <div class="ctl ctl-period"><span class="live-dot"></span><span class="mono" id="ds-period"></span></div>
       {% endif %}

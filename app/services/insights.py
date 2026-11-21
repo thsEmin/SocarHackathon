@@ -14,6 +14,8 @@ def lift_gas_events(ds):
     """Field-wide lift-gas supply drops: 30-min field total < 75 % of its 3-day median while at
     least half of the producing wells see their own lift gas drop by > 20 %."""
     h = ds.hf[~ds.hf.shut_in]
+    if h.empty:                      # every well shut in for the whole dataset: no lift gas to watch
+        return []
     g = h.set_index("timestamp").groupby("well_name").gas_lift_rate_mscfd.resample("30min").mean().unstack(0)
     base = g.rolling("3D").median()
     drop = (g / base) < 0.8
@@ -82,7 +84,9 @@ def overview(ds, start=None, end=None):
     for w, g in p.groupby("well_name"):
         today = g[g.date == last].iloc[0]
         prod = g[g.shut_frac == 0]
-        spark = prod[prod.date > last - pd.Timedelta(days=90)]
+        spark = prod                                  # the whole chosen period
+        avg = g[T].mean()                             # average daily rate over the period (shut-in days count)
+        avg_liq = avg.oil_rate_stbd + avg.water_rate_stbd
         # decline trend over the period; too few producing days -> use the whole history
         decline = diagnostics.decline_pct_yr(g if (prod.oil_rate_stbd > 0).sum() > 10 else full[full.well_name == w])
         liq = today.oil_rate_stbd + today.water_rate_stbd
@@ -91,6 +95,9 @@ def overview(ds, start=None, end=None):
             "well": w, "manifold": str(s["comp"].loc[w, "production_manifold"]) if w in s["comp"].index else "?",
             "oil": float(today.oil_rate_stbd), "water": float(today.water_rate_stbd), "gas": float(today.gas_rate_mscfd),
             "wc": float(today.water_rate_stbd / liq * 100) if liq > 0 else None,
+            "avg_oil": float(avg.oil_rate_stbd), "avg_water": float(avg.water_rate_stbd), "avg_gas": float(avg.gas_rate_mscfd),
+            "avg_wc": float(avg.water_rate_stbd / avg_liq * 100) if avg_liq > 0 else None,
+            "produced": bool((g.oil_rate_stbd > 0).any()),
             "spark": [round(float(v), 1) for v in spark.oil_rate_stbd],
             "decline_pct_yr": round(float(decline), 1),
             "cum_oil": float((g.oil_rate_stbd).sum()),
@@ -98,6 +105,13 @@ def overview(ds, start=None, end=None):
             **status[w]})
     tot = p[p.date == last][T].sum()
     prev = full[full.date == last - pd.Timedelta(days=30)][T].sum()
+    # period averages (field total per day, averaged over the days), compared with the period of the
+    # same length just before it; no comparison when the data does not reach back that far
+    n_days = int((b - a).days) + 1
+    avg = p.groupby("date")[T].sum().mean()
+    pa, pb = a - pd.Timedelta(days=n_days), a - pd.Timedelta(days=1)
+    pp = full[(full.date >= pa) & (full.date <= pb)]
+    avg_prev = pp.groupby("date")[T].sum().mean() if pa >= first_all and not pp.empty else None
     alerts = []
     for w in wells:
         for rs in w["reasons"]:
@@ -113,6 +127,13 @@ def overview(ds, start=None, end=None):
             continue
         alerts.append({"level": "info", "well": ev.well_name, "key": "ev_shutin",
                        "start": ev.shut_start.isoformat(), "hours": round(float(ev.duration_hr), 1)})
+    # field chart: one point per day, or one per HOUR for short periods (1 day would be a single dot)
+    series = {"t": [str(x.date()) for x in sorted(p.date.unique())],
+              **{k: [round(float(v), 1) for v in p.groupby("date")[k].sum().values] for k in T}, "hourly": False}
+    if n_days <= HOURLY_MAX_DAYS:
+        hs = _field_hourly(ds, p)
+        if hs is not None:
+            series = hs
     order = {"alarm": 0, "warning": 1, "info": 2}
     alerts.sort(key=lambda a: order[a["level"]])
     fastest = min(wells, key=lambda x: x["decline_pct_yr"])
@@ -120,10 +141,37 @@ def overview(ds, start=None, end=None):
             "range": {"start": str(a.date()), "end": str(b.date()), "first": str(first_all.date()), "last": str(last_all.date())},
             "totals": {k: float(v) for k, v in tot.items()},
             "totals_prev30": {k: float(v) for k, v in prev.items()},
+            "days": n_days,
+            "avg": {k: float(v) for k, v in avg.items()},
+            "avg_prev": {k: float(v) for k, v in avg_prev.items()} if avg_prev is not None else None,
             "period_cum_oil": float(p.oil_rate_stbd.sum()),
             "fastest_decline": {"well": fastest["well"], "pct_yr": fastest["decline_pct_yr"]},
-            "field_series": {"t": [str(x.date()) for x in sorted(p.date.unique())],
-                             **{k: [round(float(v), 1) for v in p.groupby("date")[k].sum().values] for k in T}}}
+            "field_series": series}
+
+
+HOURLY_MAX_DAYS = 7
+
+
+def _field_hourly(ds, p):
+    """Hourly field totals for the period: the hourly VFM of every well (each day scaled so its 24
+    hours average to the daily VFM value, same as the VFM page), summed over wells."""
+    from . import diagnostics
+    a, b = p.date.min(), p.date.max()
+    hours = pd.date_range(a, b + pd.Timedelta(hours=23), freq="h")
+    tot = pd.DataFrame(0.0, index=hours, columns=T)
+    for w, pw in p.groupby("well_name"):
+        g = diagnostics.hourly_rates(ds, w, a, b + pd.Timedelta(days=1))     # one model run per well
+        g = g.set_index("hour").reindex(hours) if len(g) else pd.DataFrame(index=hours, columns=T)
+        daily = pw.set_index("date")[T].reindex(hours.normalize()).set_axis(hours)
+        for k in T:
+            raw = pd.to_numeric(g[k], errors="coerce")
+            m = raw.groupby(hours.normalize()).transform("mean")
+            scale = (daily[k] / m).where((m > 0) & np.isfinite(m), 1.0)
+            # each day's 24 hours average to the daily VFM (as on the VFM page); hours with no
+            # sensor data use the daily value so the field total does not dip
+            tot[k] += (raw * scale).fillna(daily[k]).fillna(0).values
+    return {"t": [x.strftime("%Y-%m-%d %H:%M") for x in tot.index], "hourly": True,
+            **{k: [None if pd.isna(v) else round(float(v), 1) for v in tot[k].values] for k in T}}
 
 
 # ------------------------------------------------------------------ what-if

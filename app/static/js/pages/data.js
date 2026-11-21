@@ -1,21 +1,12 @@
 (function () {
   const $ = id => document.getElementById(id);
   let newDs = null;
-  const stat = (v, l, d = 0) => `<div class="stat"><div class="v">${typeof v === "string" ? v : PN.fmt(v, d)}</div><div class="l">${PN.t(l)}</div></div>`;
 
   function render() {
     const ds = PN.state.datasets.find(d => d.id === PN.state.ds) || PN.state.datasets[0];
     if (!ds) return;
-    $("ds-src").textContent = PN.t("src_" + ds.source);
-    $("ds-label").textContent = ds.label;
-    const days = Math.round((new Date(ds.end) - new Date(ds.start)) / 864e5) + 1;
-    $("ds-stats").innerHTML = stat(`${days} d`, "period") + stat(ds.wells.length, "wells")
-      + stat(ds.n_minutes, "minutes") + stat(ds.n_shut_ins, "shutins");
-    const c = ds.cleaning || {}, spikes = c.spikes_removed ? Object.values(c.spikes_removed).reduce((a, b) => a + b, 0) : 0;
-    $("clean-stats").innerHTML = stat(c.rows_raw, "rows_raw") + stat(c.exact_duplicates_dropped, "dups")
-      + stat(c.sentinels_to_nan, "sentinels") + stat(spikes, "spikes");
     $("ds-table").innerHTML = `<tr><th>${PN.t("dataset")}</th><th>${PN.t("period")}</th><th class="n">${PN.t("wells")}</th><th class="n">${PN.t("shutins")}</th><th></th></tr>`
-      + PN.state.datasets.map(d => `<tr class="${d.id === PN.state.ds ? "hl" : ""}"><td>${d.label}</td><td class="mono">${d.start} → ${d.end}</td>
+      + PN.state.datasets.map(d => `<tr class="${d.id === PN.state.ds ? "hl" : ""}"><td>${PN.dsName(d)}</td><td class="mono">${d.start} → ${d.end}</td>
         <td class="n">${d.wells.length}</td><td class="n">${d.n_shut_ins}</td>
         <td style="text-align:right">${d.id === PN.state.ds ? `<span class="badge accent">${PN.t("active")}</span>` : `<button class="btn ghost" data-ds="${d.id}">${PN.t("use_ds")}</button>`}</td></tr>`).join("");
     document.querySelectorAll("[data-ds]").forEach(b => b.onclick = () => { PN.setDataset(b.dataset.ds); render(); });
@@ -45,10 +36,11 @@
   async function poll(job) {
     const j = await (await fetch(`/api/upload/${job}`)).json();
     $("stage").textContent = j.stage; $("prog").firstElementChild.style.width = j.progress + "%";
-    $("warn").innerHTML = (j.warnings || []).map(w => `⚠ ${w}`).join("<br>");
+    $("warn").innerHTML = (j.warnings || []).map(w => `⚠ ${PN.esc(w)}`).join("<br>");
     if (j.status === "error") { PN.toast(`${PN.t("error")}: ${j.error}`); $("go").disabled = false; return; }
     if (j.status === "done") {
       newDs = j.dataset; await PN.refreshDatasets(); render();
+      $("pta-count").textContent = PN.t("pta_eligible", { ok: j.pta_ok ?? 0, n: j.pta_total ?? 0 });
       $("done").classList.remove("hidden"); $("go").disabled = false; PN.toast("✓ " + j.dataset, true); return;
     }
     setTimeout(() => poll(job), 800);
@@ -58,7 +50,7 @@
     load() {
       bindDrop($("drop-hf"), $("f-hf"), "n-hf"); bindDrop($("drop-choke"), $("f-choke"), "n-choke");
       $("go").onclick = upload;
-      $("open-ds").onclick = () => { if (newDs) { PN.setDataset(newDs); location.href = "/overview"; } };
+      $("open-ds").onclick = () => { if (newDs) { PN.setDataset(newDs); location.href = "/vfm"; } };
       render();
     },
     render,

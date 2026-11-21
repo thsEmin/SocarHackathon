@@ -67,6 +67,11 @@ def slow_table(daily):
             lambda v: v.rolling(SLOW_WIN, center=True, min_periods=3).median())
     cols = [f"{s}_slow" for s in SLOW]
     st[cols] = st.groupby("well_name")[cols].transform(lambda v: v.interpolate(limit_direction="both"))
+    # short uploads (fewer than 3 producing days, e.g. one day): the rolling median is empty for the
+    # whole well, so use the median of the producing days we do have. Wells with >= 3 days are unchanged.
+    for s in SLOW:
+        x = d[s].where((d.shut_frac == 0) & ~d.no_data)
+        st[f"{s}_slow"] = st[f"{s}_slow"].fillna(x.groupby(d.well_name).transform("median"))
     return st
 
 
@@ -310,7 +315,12 @@ def predict_daily(model, d):
     x["days"] += 0.5  # middle of the day
     prod = (x.shut_frac < 1) & ~x.no_data
     out = x[["date", "well_name", "shut_frac", "no_data", "low_coverage", "n_valid_minutes"]].copy()
-    preds = model.predict(x[prod])
+    if not prod.any():   # every day fully shut in or without data: nothing for the model to predict
+        if not (x.shut_frac == 1).any():
+            raise ValueError("no producing hours with sensor data in this file, so the VFM cannot run")
+        preds = {y: np.array([]) for y in TARGETS}
+    else:
+        preds = model.predict(x[prod])
     for y in TARGETS:
         p = np.full(len(x), np.nan)
         p[prod.values] = preds[y]

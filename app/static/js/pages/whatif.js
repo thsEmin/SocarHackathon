@@ -14,7 +14,7 @@
   function render() {
     if (!r) return;
     const c = PN.colors;
-    [["oil", "oil_rate_stbd", 0, "liq"], ["water", "water_rate_stbd", 0, "liq"], ["gas", "gas_rate_mscfd", 0, "gas"]].forEach(([k, f, d, u]) => {
+    [["oil", "oil_rate_stbd", 0, "oil"], ["water", "water_rate_stbd", 0, "liq"], ["gas", "gas_rate_mscfd", 0, "gas"]].forEach(([k, f, d, u]) => {
       $(`n-${k}`).textContent = PN.fmt(PN.cv(u, r.new[f]), d);
       const dv = PN.cv(u, r.delta[f]), cls = Math.abs(dv) < 0.5 ? "flat" : dv > 0 ? "up" : "down";
       $(`d-${k}`).innerHTML = `<span class="chip ${cls}">${PN.signed(dv, 0)}</span> <span class="dim">${PN.t("wi_base")}: ${PN.fmt(PN.cv(u, r.base[f]), 0)}</span>`;
@@ -31,14 +31,14 @@
     ].map((s, i) => (i ? `<span class="arrow">→</span>` : "") + `<span class="step">${s}</span>`).join("");
     $("notes").innerHTML = r.notes.map(n => `<div>⚠ ${PN.t(n)}</div>`).join("");
 
-    const base = PN.cv("liq", r.base.oil_rate_stbd), nw = PN.cv("liq", r.new.oil_rate_stbd), dChoke = base * r.choke_effect_pct / 100, dLift = nw - base - dChoke;
+    const base = PN.cv("oil", r.base.oil_rate_stbd), nw = PN.cv("oil", r.new.oil_rate_stbd), dChoke = base * r.choke_effect_pct / 100, dLift = nw - base - dChoke;
     PN.plot($("c-wf"), [{
       type: "waterfall", orientation: "v", measure: ["absolute", "relative", "relative", "total"],
       x: [`${PN.t("oil")} · ${PN.t("wi_base")}`, PN.t("choke_effect"), PN.t("lift_effect"), `${PN.t("oil")} · ${PN.t("wi_new")}`],
       y: [base, dChoke, dLift, 0], text: [PN.fmt(base), PN.signed(dChoke, 0), PN.signed(dLift, 0), PN.fmt(nw)], textposition: "outside",
       connector: { line: { color: c.line } }, increasing: { marker: { color: c.ok } }, decreasing: { marker: { color: c.alarm } },
       totals: { marker: { color: c.oil } }, textfont: { family: "JetBrains Mono", color: c.ink },
-    }], { yaxis: { title: { text: PN.t("stbd") }, range: [Math.min(base, nw) * 0.8, Math.max(base, nw) * 1.08] }, showlegend: false, hovermode: "closest", margin: { t: 20 } });
+    }], { yaxis: { title: { text: PN.t("stbd_oil") }, range: [Math.min(base, nw) * 0.8, Math.max(base, nw) * 1.08] }, showlegend: false, hovermode: "closest", margin: { t: 20 } });
   }
 
   PN.start({

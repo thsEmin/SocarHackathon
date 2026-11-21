@@ -94,8 +94,47 @@ def vfm_rate_before(inp, well, t0):
     full producing day before shut-in, so judges can trace VFM output -> PTA input."""
     d = inp["daily"]
     x = d[(d.well_name == well) & (d.date < t0.normalize()) & (d.shut_frac == 0) & ~d.no_data]
+    if x.empty:
+        raise NotEligible("no_producing_day",
+                          "PTA is unavailable for this event. Include at least one full producing day before the shut-in.")
     row = x.iloc[-1]
     return float(row.oil_rate_stbd), row.date
+
+
+class NotEligible(ValueError):
+    """A shut-in that cannot be analysed; `code` is language-neutral (the app translates it)."""
+    def __init__(self, code, msg):
+        super().__init__(msg)
+        self.code = code
+
+
+MIN_BUILDUP_POINTS = 20
+
+
+def check_eligible(inp, ev):
+    """Raise NotEligible if this shut-in lacks the input PTA needs (checked before the analysis)."""
+    hw = inp["hf"][inp["hf"].well_name == ev.well_name]
+    vfm_rate_before(inp, ev.well_name, ev.shut_start)
+    if not hw[hw.timestamp <= ev.shut_start].dh_pressure_psia.notna().any():
+        raise NotEligible("no_flowing_pressure",
+                          "PTA is unavailable for this event. No downhole pressure was recorded before the shut-in.")
+    n = int(hw[(hw.timestamp > ev.shut_start) & (hw.timestamp < ev.shut_end)].dh_pressure_psia.notna().sum())
+    if n < MIN_BUILDUP_POINTS:
+        raise NotEligible("short_buildup",
+                          f"PTA is unavailable for this event. Only {n} build-up pressure points were recorded "
+                          f"(at least {MIN_BUILDUP_POINTS} are needed).")
+
+
+def analyse_safe(inp, ev, **kw):
+    """analyse() that never raises: returns (res, curves, None) or (None, None, {code, reason})."""
+    try:
+        check_eligible(inp, ev)
+        res, cur = analyse(inp, ev, **kw)
+        return res, cur, None
+    except NotEligible as e:
+        return None, None, {"code": e.code, "reason": str(e)}
+    except Exception as e:  # any other failure stays confined to this one event
+        return None, None, {"code": "failed", "reason": f"PTA is unavailable for this event: {e}"}
 
 
 # ------------------------------------------------------------------ pressure-only build-up analysis
@@ -327,9 +366,12 @@ def _wrap(s, n):
 
 # ------------------------------------------------------------------ main
 def run_all(inp):
-    rows, curves = [], {}
+    rows, curves, skipped = [], {}, []
     for _, ev in inp["shut"].iterrows():
-        res, cur = analyse(inp, ev)
+        res, cur, err = analyse_safe(inp, ev)
+        if err:
+            skipped.append({"well_name": ev.well_name, "shut_in_start": ev.shut_start, **err})
+            continue
         # sensitivity: other producing-time definition, and window shifted by +-0.1 log cycle
         alt, _ = analyse(inp, ev, tp_mode="since last choke change")
         w0, w1 = res["radial_window_start_hr"], res["radial_window_end_hr"]
@@ -339,7 +381,9 @@ def run_all(inp):
         res["k_md_window_shift_min"], res["k_md_window_shift_max"] = min(ks), max(ks)
         rows.append(res)
         curves[(ev.well_name, ev.shut_start)] = cur
-    return pd.DataFrame(rows), curves
+    out = pd.DataFrame(rows)
+    out.attrs["skipped"] = skipped
+    return out, curves
 
 
 def main():
@@ -383,6 +427,15 @@ def write_excel(r, path):
                                  "dP_skin = 0.869 m S",
                                  "single-phase oil valid: Pwf above bubble point in every test"]}
                      ).to_excel(xw, sheet_name="method", index=False)
+        pd.DataFrame({"note": ["All results in this workbook use the AUTOMATIC radial-flow window. "
+                               "A manual window chosen on screen is not exported.",
+                               "Oil rate q = column q_oil_vfm_stbd, taken from the VFM daily prediction "
+                               "of the date in column q_source_date."]}
+                     ).to_excel(xw, sheet_name="fit", index=False)
+        skipped = r.attrs.get("skipped") or []
+        if skipped:
+            pd.DataFrame(skipped)[["well_name", "shut_in_start", "reason"]].to_excel(
+                xw, sheet_name="not_analysed", index=False)
 
 
 if __name__ == "__main__":

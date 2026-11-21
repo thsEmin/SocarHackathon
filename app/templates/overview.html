@@ -1,30 +1,38 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="row cols-6" id="kpis">
-  <div class="card kpi oil"><div class="label"><span class="swatch" style="background:var(--oil)"></span><span data-i18n="k_field_oil"></span></div><div class="value"><span id="k-oil">—</span><span class="unit" data-i18n="stbd"></span></div><div class="foot" id="k-oil-f"></div></div>
-  <div class="card kpi water"><div class="label"><span class="swatch" style="background:var(--water)"></span><span data-i18n="k_field_water"></span></div><div class="value"><span id="k-water">—</span><span class="unit" data-i18n="stbd"></span></div><div class="foot" id="k-water-f"></div></div>
-  <div class="card kpi gas"><div class="label"><span class="swatch" style="background:var(--gas)"></span><span data-i18n="k_field_gas"></span></div><div class="value"><span id="k-gas">—</span><span class="unit" data-i18n="mscfd"></span></div><div class="foot" id="k-gas-f"></div></div>
+  <div class="card kpi oil"><div class="label"><span class="swatch" style="background:var(--oil)"></span><span data-i18n="k_avg_oil"></span></div><div class="value"><span id="k-oil">—</span><span class="unit" data-i18n="stbd_oil"></span></div><div class="foot" id="k-oil-f"></div></div>
+  <div class="card kpi water"><div class="label"><span class="swatch" style="background:var(--water)"></span><span data-i18n="k_avg_water"></span></div><div class="value"><span id="k-water">—</span><span class="unit" data-i18n="stbd"></span></div><div class="foot" id="k-water-f"></div></div>
+  <div class="card kpi gas"><div class="label"><span class="swatch" style="background:var(--gas)"></span><span data-i18n="k_avg_gas"></span></div><div class="value"><span id="k-gas">—</span><span class="unit" data-i18n="mscfd"></span></div><div class="foot" id="k-gas-f"></div></div>
   <div class="card kpi acc"><div class="label" data-i18n="k_wc"></div><div class="value"><span id="k-wc">—</span><span class="unit">%</span></div><div class="foot" id="k-wc-f"></div></div>
   <div class="card kpi acc"><div class="label" data-i18n="k_online"></div><div class="value"><span id="k-online">—</span></div><div class="foot" id="k-online-f"></div></div>
   <div class="card kpi oil"><div class="label" data-i18n="k_cum"></div><div class="value"><span id="k-cum">—</span><span class="unit" id="k-cum-u">Mstb</span></div><div class="foot" id="k-cum-f"></div></div>
 </section>
 
-<section class="row main-rail">
-  <div class="card">
-    <div class="card-h"><h3 data-i18n="schematic"></h3><span class="sub" data-i18n="schematic_sub"></span>
-      <div class="right"><span class="badge ok"><span class="dot ok"></span><span data-i18n="lg_ok"></span></span><span class="badge warning"><span class="dot warning"></span><span data-i18n="lg_warn"></span></span><span class="badge alarm"><span class="dot alarm"></span><span data-i18n="lg_alarm"></span></span></div></div>
-    <div class="schematic" id="schematic"><div class="skel" style="min-height:330px"></div></div>
-  </div>
-  <div class="card">
-    <div class="card-h"><h3 data-i18n="alerts"></h3></div>
+<!-- field schematic: full width. Alerts & insights opens as a slide-over drawer (button in the header) -->
+<section class="card">
+  <div class="card-h"><h3 data-i18n="schematic"></h3><span class="sub" data-i18n="schematic_sub"></span>
+    <div class="right"><span class="badge ok"><span class="dot ok"></span><span data-i18n="lg_ok"></span></span><span class="badge warning"><span class="dot warning"></span><span data-i18n="lg_warn"></span></span><span class="badge alarm"><span class="dot alarm"></span><span data-i18n="lg_alarm"></span></span>
+      <button type="button" class="alerts-btn" id="alerts-open" aria-controls="alerts-drawer" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <span data-i18n="alerts"></span><span class="ab-count" id="alerts-count">…</span>
+      </button></div></div>
+  <div class="schematic" id="schematic"><div class="skel" style="min-height:330px"></div></div>
+</section>
+
+<div class="drawer-backdrop" id="alerts-backdrop" hidden></div>
+<aside class="drawer" id="alerts-drawer" role="dialog" aria-modal="true" aria-labelledby="alerts-title" aria-hidden="true" inert>
+  <div class="card drawer-card">
+    <div class="card-h"><h3 id="alerts-title" data-i18n="alerts"></h3>
+      <button type="button" class="drawer-x" id="alerts-close" aria-label="Close">×</button></div>
     <div class="sub dim" style="font-size:12px;margin:-6px 0 12px" data-i18n="alerts_sub"></div>
     <div class="alerts" id="alerts"><div class="skel"></div></div>
   </div>
-</section>
+</aside>
 
 <section class="card">
-  <div class="card-h"><h3 data-i18n="field_prod"></h3><span class="sub" data-i18n="field_prod_sub"></span></div>
-  <div class="chart" id="field-chart"></div>
+  <div class="card-h"><h3 data-i18n="field_prod"></h3><span class="sub" id="field-sub" data-i18n="field_prod_sub"></span></div>
+  <div class="chart" id="field-chart" style="height:560px"></div>
 </section>
 {% endblock %}
 {% block scripts %}<script src="{{ url_for('static', filename='js/pages/overview.js') }}"></script>{% endblock %}

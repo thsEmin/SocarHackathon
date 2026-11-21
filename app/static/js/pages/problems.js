@@ -19,7 +19,7 @@
     const total = d.loss_daily.reduce((a, r) => a + usd(r.oil_stb, r.gas_mscf), 0);
     const totOil = d.loss_daily.reduce((a, r) => a + r.oil_stb, 0);
     PN.countUp($("k-total"), total, 0);
-    $("k-total-f").innerHTML = `<span class="mono">${PN.fmt(PN.cv("liq", totOil), 0)} ${PN.vl("liq")}</span> <span class="dim">${PN.t("pb_oil_lost")} · ${PN.date(d.period.start)} → ${PN.date(d.period.end)}</span>`;
+    $("k-total-f").innerHTML = `<span class="mono">${PN.fmt(PN.cv("oil", totOil), 0)} ${PN.vl("oil")}</span> <span class="dim">${PN.t("pb_oil_lost")} · ${PN.date(d.period.start)} → ${PN.date(d.period.end)}</span>`;
     const now = d.issues.filter(i => i.when === "now");
     const perDay = now.reduce((a, i) => a + i.loss_oil_stbd_now * (P.oil + (i.gor || 0) * P.gas), 0);
     PN.countUp($("k-now"), perDay, 0);
@@ -72,7 +72,7 @@
     const money = i.when === "now" && daily > 0 ? `${PN.usdShort(daily)}${PN.t("pb_per_day")}` : lost > 0 ? PN.usdShort(lost) : "";
     const span = i.start ? (i.end && i.end !== i.start ? `${PN.date(i.start)} → ${PN.date(i.end)}`
                                                         : `${PN.t(i.when === "future" ? "pb_by" : "pb_since")} ${PN.date(i.start)}`) : "";
-    const lostTxt = lost > 0 ? ` · ${PN.t("pb_lost_so_far")} ${PN.fmt(PN.cv("liq", i.loss_oil_stb), 0)} ${PN.vl("liq")} = ${PN.usdShort(lost)}` : "";
+    const lostTxt = lost > 0 ? ` · ${PN.t("pb_lost_so_far")} ${PN.fmt(PN.cv("oil", i.loss_oil_stb), 0)} ${PN.vl("oil")} = ${PN.usdShort(lost)}` : "";
     return `<div class="issue ${i.severity}">
       <div class="top"><span class="badge ${i.severity}">${PN.t("sev_" + i.severity)}</span><span class="when">${PN.t("pb_" + i.when)}</span>
         <span class="well">${i.well || PN.t("pb_field")}</span>${money ? `<span class="money">−${money}</span>` : ""}</div>

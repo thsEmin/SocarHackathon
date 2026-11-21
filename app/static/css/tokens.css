@@ -23,8 +23,11 @@
   --bg-raised: #F4F7FB;   /* soft cool grey for panels and section bands */
   --card: #FFFFFF;
   --card-hover: #F8FAFD;
-  --line: #E3E8EF;
-  --line-strong: #C9D2DE;
+  /* borders, warm to match the sunset / refinery look:
+     --frame = outer edge of cards and table panels (burnt orange), --line / --line-strong = inner dividers (warm sand) */
+  --frame: #DE9B66;
+  --line: #F0E1D2;
+  --line-strong: #E2C3A6;
   --ink: #0B2341;         /* deep navy: hero, numbers band, footer */
   --ink-2: #12305A;
   --ink-line: #1F3D66;

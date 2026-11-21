@@ -72,29 +72,50 @@
     </svg>`;
   }
 
+  // ---- "Current dataset" card: the dataset these numbers come from and its automatic cleaning report
+  const stat = (v, l, dg = 0) => `<div class="stat"><div class="v">${typeof v === "string" ? v : PN.fmt(v, dg)}</div><div class="l">${PN.t(l)}</div></div>`;
+  function renderDataset() {
+    const ds = PN.state.datasets.find(x => x.id === PN.state.ds) || PN.state.datasets[0];
+    if (!ds) return;
+    $("ds-src").textContent = PN.t("src_" + ds.source);
+    $("ds-label").textContent = ds.label;
+    const days = Math.round((new Date(ds.end) - new Date(ds.start)) / 864e5) + 1;
+    $("ds-stats").innerHTML = stat(`${days} d`, "period") + stat(ds.wells.length, "wells")
+      + stat(ds.n_minutes, "minutes") + stat(ds.n_shut_ins, "shutins");
+    const c = ds.cleaning || {}, spikes = c.spikes_removed ? Object.values(c.spikes_removed).reduce((a, b) => a + b, 0) : 0;
+    $("clean-stats").innerHTML = stat(c.rows_raw, "rows_raw") + stat(c.exact_duplicates_dropped, "dups")
+      + stat(c.sentinels_to_nan, "sentinels") + stat(spikes, "spikes");
+  }
+
   function render() {
+    renderDataset();
     if (!d) return;
     $("wb").innerHTML = wellbore(d);
-    PN.countUp($("w-oil"), PN.cv("liq", d.today.oil_rate_stbd)); PN.countUp($("w-water"), PN.cv("liq", d.today.water_rate_stbd)); PN.countUp($("w-gas"), PN.cv("gas", d.today.gas_rate_mscfd));
+    PN.countUp($("w-oil"), PN.cv("oil", d.today.oil_rate_stbd)); PN.countUp($("w-water"), PN.cv("liq", d.today.water_rate_stbd)); PN.countUp($("w-gas"), PN.cv("gas", d.today.gas_rate_mscfd));
     const c = d.completion, v = d.pvt, p = d.pta;
     $("w-comp").innerHTML = [["gauge", L(c.gauge_tvd_ft)], ["gl_valve", `${L(c.gl_valve_tvd_ft)} · ${c.gl_valve_port_64ths}/64"`],
       ["tubing", `${c.tubing_od_in}" / ${c.tubing_id_in}"`], [PN.t("manifold"), c.production_manifold], ["Lift gas SG", c.lift_gas_sg],
-      ["First production", c.first_production_date], ["Cum. oil 1-Jan-2025", `${PN.fmt(PN.cv("liq", c.cum_oil_at_2025_01_01_stb) / 1e6, 2)} 10⁶ ${PN.vl("liq")}`]]
+      ["First production", c.first_production_date], ["Cum. oil 1-Jan-2025", `${PN.fmt(PN.cv("oil", c.cum_oil_at_2025_01_01_stb) / 1e6, 2)} 10⁶ ${PN.vl("oil")}`]]
       .map(([k, x]) => `<div class="k">${PN.t(k)}</div><div class="v">${x}</div>`).join("");
     $("w-pvt").innerHTML = [["pay", L(v.net_pay_thickness_ft)], ["φ", `${PN.fmt(v.porosity_frac * 100, 1)} %`], ["Sw", `${PN.fmt(v.water_saturation_frac * 100, 1)} %`],
       ["ct", `${(v.total_compressibility_1_psi / PN.cv("dp", 1)).toExponential(2)} 1/${PN.ul("dp")}`], ["Bo", `${v.oil_fvf_rb_stb} rb/stb`], ["μo", `${v.oil_viscosity_cp} cp`],
       ["Pb", P(v.bubble_point_pressure_psia)], ["T res", F(v.reservoir_temperature_degf)], [PN.t("drawdown"), P(d.drawdown, "dp")]]
       .map(([k, x]) => `<div class="k">${PN.t(k)}</div><div class="v">${x}</div>`).join("");
     $("w-pta").innerHTML = p ? `<div class="res-grid">
-        <div class="res"><div class="label">${PN.t("m")}</div><div class="value">${PN.fmt(PN.cv("dp", p.horner_slope_psi_cycle), 1)}<span class="unit">${PN.ul("dp")}/cyc</span></div></div>
+        <div class="res"><div class="label">${PN.t("m")}</div><div class="value${PN.fmt(PN.cv("dp", p.horner_slope_psi_cycle), 1).length > 7 ? " long" : ""}">${PN.fmt(PN.cv("dp", p.horner_slope_psi_cycle), 1)}<span class="unit">${PN.ul("dp")}/cyc</span></div></div>
         <div class="res"><div class="label">${PN.t("k")}</div><div class="value">${PN.fmt(p.permeability_md, 1)}<span class="unit">mD</span></div></div>
         <div class="res"><div class="label">${PN.t("s")}</div><div class="value">${PN.signed(p.skin, 2)}</div></div>
         <div class="res"><div class="label">${PN.t("fe")}</div><div class="value">${PN.fmt(p.flow_efficiency, 2)}</div></div></div>
-        <div class="dim mono" style="font-size:12px;margin-top:10px">${PN.date(p.shut_in_start, true)} · ${PN.fmt(p.duration_hr, 1)} h · ${PN.t("quality")} ${p.quality}</div>`
-      : `<div class="muted">${PN.t("no_pta")}</div>`;
+        <div class="dim mono" style="font-size:12px;margin-top:10px">${PN.date(p.shut_in_start, true)} · ${PN.fmt(p.duration_hr, 1)} h · ${PN.t("quality")} ${p.quality}
+        · ${PN.t("q_used")} ${PN.fmt(PN.cv("oil", p.q_oil_vfm_stbd), 0)} ${PN.ul("oil")} (${p.q_source_date})</div>
+        <a class="btn ghost" style="margin-top:10px" href="/pta?event=${p.idx}&well=${encodeURIComponent(d.well)}" data-icon="arrow"><span>${PN.t("view_pta")}</span></a>`
+      : (d.pta_skipped && d.pta_skipped.length
+        ? `<div class="muted">${PN.t("pta_missing_well")}</div>` + d.pta_skipped.map(x => `<div class="dim" style="font-size:13px;margin-top:6px">⚠ ${PN.date(x.shut_in_start, true)}: ${PN.t("pta_na_" + x.code)}</div>`).join("")
+        : `<div class="muted">${PN.t("no_pta")}</div>`);
   }
 
   async function load() {
+    renderDataset();
     try { d = await PN.api("/api/well", { well: PN.state.well }); render(); }
     catch (e) { PN.toast(`${PN.t("error")}: ${e.message}`); }
   }

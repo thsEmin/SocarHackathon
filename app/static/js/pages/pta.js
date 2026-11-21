@@ -1,14 +1,23 @@
 (function () {
   const $ = id => document.getElementById(id);
-  let events = [], cur = null, idx = 0;
+  let events = [], skipped = [], cur = null, idx = 0;
   const qs = new URLSearchParams(location.search);
 
   function renderEvents() {
     $("events").innerHTML = events.map(e => `<div class="ev ${e.idx === idx ? "on" : ""}" data-i="${e.idx}">
       <div style="display:flex;gap:8px;align-items:center"><span class="w">${e.well_name}</span><span class="badge ${e.quality === "A" ? "ok" : "warning"}" style="padding:1px 7px">${e.quality}</span></div>
+      <div class="d">${PN.date(e.shut_in_start, true)} · ${PN.fmt(e.duration_hr, 1)} h</div></div>`).join("")
+      + skipped.map(e => `<div class="ev off" data-s="${e.idx}" title="${PN.t("pta_na_" + e.code)}" style="opacity:.55">
+      <div style="display:flex;gap:8px;align-items:center"><span class="w">${e.well_name}</span><span class="badge warning" style="padding:1px 7px">${PN.t("pta_na")}</span></div>
       <div class="d">${PN.date(e.shut_in_start, true)} · ${PN.fmt(e.duration_hr, 1)} h</div></div>`).join("");
-    document.querySelectorAll(".ev").forEach(el => el.onclick = () => { idx = +el.dataset.i; PN.setWell(events[idx].well_name); loadEvent(); });
+    document.querySelectorAll(".ev[data-i]").forEach(el => el.onclick = () => {
+      idx = +el.dataset.i; PN.setWell(events.find(e => e.idx === idx).well_name); loadEvent(); });
+    document.querySelectorAll(".ev[data-s]").forEach(el => el.onclick = () => {
+      const e = skipped.find(x => x.idx === +el.dataset.s); showSkipped(e); });
+    $("na-msg").innerHTML = skipped.map(e => `<div>⚠ <b>${e.well_name}</b> ${PN.date(e.shut_in_start, true)}: ${PN.t("pta_na_" + e.code)}</div>`).join("");
   }
+
+  function showSkipped(e) { PN.toast(`${e.well_name}: ${PN.t("pta_na_" + e.code)}`); }
 
   async function loadEvent(w0, w1) {
     try {
@@ -35,12 +44,14 @@
     kpi("r-dps", r.dp_skin_psi, a.dp_skin_psi, 1, "", "dp");
     $("mode-badge").className = "badge " + (cur.window_auto ? "accent" : "warning");
     $("mode-badge").textContent = cur.window_auto ? PN.t("automatic") : PN.t("manual");
+    $("q-src").textContent = PN.t("q_src_line", { q: `${PN.fmt(PN.cv("oil", r.q_oil_vfm_stbd), 0)} ${PN.ul("oil")}`, d: cur.q_source_date });
+    $("fit-note").textContent = cur.window_auto ? PN.t("fit_auto_note") : PN.t("fit_manual_note");
     $("q-badge").className = "badge " + (cur.quality === "A" ? "ok" : "warning");
     $("q-badge").textContent = `${PN.t("quality")} ${cur.quality}`;
     $("w0").value = (+r.radial_window_start_hr).toFixed(2); $("w1").value = (+r.radial_window_end_hr).toFixed(2);
 
     $("extra").innerHTML = [
-      ["q_used", `${PN.fmt(PN.cv("liq", r.q_oil_vfm_stbd), 0)} ${PN.ul("liq")}`], ["tp", `${PN.fmt(r.tp_hr, 0)} h`],
+      ["q_used", `${PN.fmt(PN.cv("oil", r.q_oil_vfm_stbd), 0)} ${PN.ul("oil")} · ${PN.t("q_date")} ${cur.q_source_date}`], ["tp", `${PN.fmt(r.tp_hr, 0)} h`],
       ["pwf", `${P(r.pwf_psia)} ${PN.ul("p")}`], ["P1hr / P*", `${P(r.p1hr_psia)} / ${P(r.p_star_gauge_psia)} ${PN.ul("p")}`],
       ["pavg", `${P(r.avg_reservoir_pressure_datum_psia)} ${PN.ul("p")}`], ["fe", PN.fmt(r.flow_efficiency, 2)],
       ["flatness", `${PN.fmt(r.derivative_flatness_cv * 100, 1)} %`], ["rinv", `${PN.fmt(PN.cv("len", r.radius_investigation_ft), 0)} ${PN.ul("len")}`],
@@ -56,8 +67,8 @@
     const H = cur.history, shut = [{ start: cur.shut_in_start, end: cur.shut_in_end }];
     PN.plot($("c-hist"), [
       { x: H.t, y: PN.cva("p", H.p), name: `${PN.t("dhp")} (${PN.ul("p")})`, type: "scatter", mode: "lines", line: { color: c.dhp, width: 1.6 } },
-      { x: H.rate_t, y: PN.cva("liq", H.rate_q), name: `${PN.t("oil")} VFM (${PN.ul("liq")})`, type: "scatter", mode: "lines", line: { color: c.oil, width: 2, shape: "hv" }, yaxis: "y2" },
-    ], { yaxis: { title: { text: PN.ul("p") } }, yaxis2: { overlaying: "y", side: "right", showgrid: false, rangemode: "tozero", title: { text: PN.ul("liq") } },
+      { x: H.rate_t, y: PN.cva("oil", H.rate_q), name: `${PN.t("oil")} VFM (${PN.ul("oil")})`, type: "scatter", mode: "lines", line: { color: c.oil, width: 2, shape: "hv" }, yaxis: "y2" },
+    ], { yaxis: { title: { text: PN.ul("p") } }, yaxis2: { overlaying: "y", side: "right", showgrid: false, rangemode: "tozero", title: { text: PN.ul("oil") } },
          shapes: PN.shade(shut, "rgba(224,138,0,0.12)"), margin: { r: 60 } });
 
     // 2 log-log with draggable window
@@ -101,14 +112,26 @@
       };
       $("auto").onclick = () => loadEvent();
       try {
-        events = await PN.api("/api/pta/events");
-        if (!events.length) { $("events").innerHTML = `<span class="muted">—</span>`; return; }
-        const want = qs.get("event");
-        idx = want != null ? +want : Math.max(0, events.findIndex(e => e.well_name === PN.state.well));
+        [events, skipped] = await Promise.all([PN.api("/api/pta/events"), PN.api("/api/pta/skipped").catch(() => [])]);
+        if (!events.length) {
+          renderEvents();
+          $("na-msg").insertAdjacentHTML("afterbegin", `<div><b>${PN.t("pta_none")}</b></div>`);
+          if (!skipped.length) $("events").innerHTML = `<span class="muted">—</span>`;
+          return;
+        }
+        const want = qs.get("event"), wantWell = qs.get("well") || PN.state.well;
+        const hit = want != null ? events.find(e => e.idx === +want) : events.find(e => e.well_name === wantWell);
+        if (want != null && !hit) { const s = skipped.find(e => e.idx === +want); if (s) showSkipped(s); }
+        idx = (hit || events[0]).idx;
         renderEvents(); await loadEvent();
       } catch (e) { PN.toast(`${PN.t("error")}: ${e.message}`); }
     },
     render,
-    onWell(w) { const i = events.findIndex(e => e.well_name === w); if (i >= 0) { idx = i; loadEvent(); } else PN.toast(`${w}: ${PN.t("no_pta")}`); },
+    onWell(w) {
+      const e = events.find(x => x.well_name === w);
+      if (e) { idx = e.idx; loadEvent(); return; }
+      const s = skipped.find(x => x.well_name === w);
+      s ? showSkipped(s) : PN.toast(`${w}: ${PN.t("no_pta")}`);
+    },
   });
 })();

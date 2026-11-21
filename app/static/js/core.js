@@ -19,19 +19,27 @@
 
   // ---------------- units (display only: the server always works in field units)
   // each option: [label, factor, offset]  ->  shown = value * factor + offset
+  // oil density for tonnes: median well-test gravity 30.7 °API -> 141.5 / (131.5 + 30.7) = 0.872 t/m³
+  const OIL_SG = 0.872;
   PN.UNITS = {
-    p:   { psi: ["psia", 1], bar: ["bar", 0.0689476], kPa: ["kPa", 6.89476], MPa: ["MPa", 0.00689476], Pa: ["Pa", 6894.76], atm: ["atm", 0.0680460] },
-    dp:  { psi: ["psi", 1], bar: ["bar", 0.0689476], kPa: ["kPa", 6.89476], MPa: ["MPa", 0.00689476], Pa: ["Pa", 6894.76], atm: ["atm", 0.0680460] },
+    p:   { psi: ["psia", 1], bar: ["bar", 0.0689476], kPa: ["kPa", 6.89476], MPa: ["MPa", 0.00689476], Pa: ["Pa", 6894.76], atm: ["atm", 0.0680460], kgf: ["kgf/cm²", 0.0703070] },
+    dp:  { psi: ["psi", 1], bar: ["bar", 0.0689476], kPa: ["kPa", 6.89476], MPa: ["MPa", 0.00689476], Pa: ["Pa", 6894.76], atm: ["atm", 0.0680460], kgf: ["kgf/cm²", 0.0703070] },
     t:   { F: ["°F", 1, 0], C: ["°C", 5 / 9, -32 * 5 / 9], K: ["K", 5 / 9, 255.372] },
+    // oil has its own unit so it can be shown in tonnes (water stays in volume)
+    oil: { stbd: ["stb/d", 1], m3d: ["m³/d", 0.158987], td: ["t/d", 0.158987 * OIL_SG], bpd_k: ["Mstb/d", 0.001] },
     liq: { stbd: ["stb/d", 1], m3d: ["m³/d", 0.158987], bpd_k: ["Mstb/d", 0.001] },
     gas: { mscfd: ["Mscf/d", 1], m3d: ["m³/d", 28.3168], km3d: ["10³ m³/d", 0.0283168], mmscfd: ["MMscf/d", 0.001] },
     len: { ft: ["ft", 1], m: ["m", 0.3048] },
   };
-  PN.UNIT_DEFAULT = { p: "psi", t: "F", liq: "stbd", gas: "mscfd", len: "ft" };
-  PN.UNIT_PRESETS = { field: { p: "psi", t: "F", liq: "stbd", gas: "mscfd", len: "ft" },
-                      metric: { p: "bar", t: "C", liq: "m3d", gas: "m3d", len: "m" },
-                      si: { p: "kPa", t: "K", liq: "m3d", gas: "m3d", len: "m" } };
-  try { PN.state.units = Object.assign({}, PN.UNIT_DEFAULT, JSON.parse(store.get("units", "{}"))); }
+  // first visit: units used in Azerbaijan (kgf/cm², °C, oil in tonnes, water m³, gas thousand m³, metres)
+  PN.UNIT_PRESETS = { az: { p: "kgf", t: "C", oil: "td", liq: "m3d", gas: "km3d", len: "m" },
+                      field: { p: "psi", t: "F", oil: "stbd", liq: "stbd", gas: "mscfd", len: "ft" },
+                      metric: { p: "bar", t: "C", oil: "m3d", liq: "m3d", gas: "m3d", len: "m" },
+                      si: { p: "kPa", t: "K", oil: "m3d", liq: "m3d", gas: "m3d", len: "m" } };
+  PN.UNIT_DEFAULT = PN.UNIT_PRESETS.az;
+  // saved choices from before oil had its own unit: start oil from the water unit they chose
+  try { const saved = JSON.parse(store.get("units", "null"));
+        PN.state.units = saved ? Object.assign({}, PN.UNIT_PRESETS.field, { oil: saved.liq || "stbd" }, saved) : Object.assign({}, PN.UNIT_DEFAULT); }
   catch (e) { PN.state.units = Object.assign({}, PN.UNIT_DEFAULT); }
   const sel = kind => { const k = kind === "dp" ? "p" : kind; const tab = PN.UNITS[kind]; return tab[PN.state.units[k]] || tab[Object.keys(tab)[0]]; };
   PN.ul = kind => sel(kind)[0];                                                       // unit label
@@ -43,13 +51,13 @@
     PN.state.units = Object.assign({}, PN.state.units, u); store.set("units", JSON.stringify(PN.state.units));
     PN.applyI18n(); PN.page && PN.page.render && PN.page.render();
   };
-  const UNIT_KEYS = { stbd: () => PN.ul("liq"), mscfd: () => PN.ul("gas"), psia: () => PN.ul("p"), psi: () => PN.ul("dp"),
+  const UNIT_KEYS = { stbd: () => PN.ul("liq"), stbd_oil: () => PN.ul("oil"), mscfd: () => PN.ul("gas"), psia: () => PN.ul("p"), psi: () => PN.ul("dp"),
                       degf: () => PN.ul("t"), ft: () => PN.ul("len") };
 
   // problem-issue evidence -> text parameters, converted to the chosen units
-  const EV_KIND = { pwf: "p", pb: "p", dwhp: "dp", ddhp: "dp", dp_skin: "dp", gain: "liq", q: "liq", dq: "liq", q90: "liq",
-                    dq90: "liq", lift: "gas", lift_b: "gas" };
-  const unitDigits = kind => (["MPa", "bar", "atm", "Mstb/d", "MMscf/d", "10³ m³/d"].includes(PN.ul(kind)) ? 1 : 0);
+  const EV_KIND = { pwf: "p", pb: "p", dwhp: "dp", ddhp: "dp", dp_skin: "dp", gain: "oil", q: "oil", dq: "oil", q90: "oil",
+                    dq90: "oil", lift: "gas", lift_b: "gas" };
+  const unitDigits = kind => (["MPa", "bar", "atm", "kgf/cm²", "Mstb/d", "MMscf/d", "10³ m³/d"].includes(PN.ul(kind)) ? 1 : 0);
   PN.issueParams = function (ev) {
     const o = {};
     Object.entries(ev || {}).forEach(([k, v]) => {
@@ -190,7 +198,10 @@
       b.onclick = () => {
         PN.state.lang = b.dataset.lang; store.set("lang", PN.state.lang);
         seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-        PN.applyI18n(); PN.redrawUnits && PN.redrawUnits(); PN.page && PN.page.render && PN.page.render();
+        PN.applyI18n(); PN.redrawUnits && PN.redrawUnits();
+        const ds = document.getElementById("ds-select");
+        if (ds) { ds.innerHTML = dsOptions(); ds.value = PN.state.ds; }
+        PN.page && PN.page.render && PN.page.render();
       };
     });
     PN.applyI18n();
@@ -201,24 +212,42 @@
     if (!PN.state.datasets.find(d => d.id === PN.state.ds)) { PN.state.ds = "preloaded"; store.set("ds", "preloaded"); }
     const dsSel = document.getElementById("ds-select");
     if (!dsSel) return;   // pages without the dataset bar (home)
-    dsSel.innerHTML = PN.state.datasets.map(d => `<option value="${d.id}">${d.source === "preloaded" ? "SOCAR 2026 (preloaded)" : d.label}</option>`).join("");
+    dsSel.innerHTML = dsOptions();
     dsSel.value = PN.state.ds;
-    dsSel.onchange = () => { PN.setDataset(dsSel.value); };
+    dsSel.onchange = () => {
+      if (dsSel.value === IMPORT) { dsSel.value = PN.state.ds; location.href = "/data"; return; }
+      PN.setDataset(dsSel.value);
+    };
     fillWells();
+  }
+  // dataset names: demo samples are named in the chosen language, e.g. "Sample · 7 days (16 Aug → 22 Aug)"
+  // escape text that came from outside (uploaded file names, well names) before it goes into innerHTML
+  PN.esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+  PN.dsName = d => {
+    if (d.source === "preloaded") return "SOCAR 2026 (preloaded)";
+    if (d.source !== "sample") return PN.esc(d.label);
+    const n = Math.round((new Date(d.end) - new Date(d.start)) / 864e5) + 1;
+    return PN.t("ds_sample", { n, period: n > 1 ? `${PN.date(d.start)} → ${PN.date(d.end)}` : PN.date(d.start) });
+  };
+  // dataset list + a last "+ Import new data" entry that opens the import page
+  const IMPORT = "__import";
+  function dsOptions() {
+    return PN.state.datasets.map(d => `<option value="${d.id}">${PN.dsName(d)}</option>`).join("")
+      + `<option value="${IMPORT}">＋ ${PN.t("ds_import")}</option>`;
   }
   // units menu in the top bar: presets + one choice per quantity
   function initUnits() {
     const box = document.getElementById("units");
     if (!box) return;
     const btn = box.querySelector("button"), pop = box.querySelector(".units-pop");
-    const kinds = [["p", "u_pressure"], ["t", "u_temp"], ["liq", "u_liq"], ["gas", "u_gas"], ["len", "u_len"]];
+    const kinds = [["p", "u_pressure"], ["t", "u_temp"], ["oil", "u_oil"], ["liq", "u_liq"], ["gas", "u_gas"], ["len", "u_len"]];
     const draw = () => {
       const cur = JSON.stringify(PN.state.units);
       const preset = Object.keys(PN.UNIT_PRESETS).find(k => JSON.stringify(Object.assign({}, PN.state.units, PN.UNIT_PRESETS[k])) === cur && Object.keys(PN.UNIT_PRESETS[k]).every(x => PN.UNIT_PRESETS[k][x] === PN.state.units[x]));
       pop.innerHTML = `<div class="seg units-presets">${Object.keys(PN.UNIT_PRESETS).map(k => `<button data-preset="${k}" class="${k === preset ? "on" : ""}">${PN.t("u_" + k)}</button>`).join("")}</div>`
         + kinds.map(([k, lbl]) => `<label class="units-row"><span>${PN.t(lbl)}</span><select data-kind="${k}">${Object.entries(PN.UNITS[k]).map(([id, u]) => `<option value="${id}" ${PN.state.units[k] === id ? "selected" : ""}>${u[0]}</option>`).join("")}</select></label>`).join("")
         + `<div class="units-note">${PN.t("u_note")}</div>`;
-      btn.querySelector(".units-cur").textContent = `${PN.ul("p")} · ${PN.ul("t")} · ${PN.ul("liq")}`;
+      btn.querySelector(".units-cur").textContent = `${PN.ul("p")} · ${PN.ul("t")} · ${PN.ul("oil")}`;
       pop.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => { PN.setUnits(PN.UNIT_PRESETS[b.dataset.preset]); draw(); });
       pop.querySelectorAll("select").forEach(s => s.onchange = () => { PN.setUnits({ [s.dataset.kind]: s.value }); draw(); });
     };
@@ -255,7 +284,7 @@
   PN.refreshDatasets = async function () {
     PN.state.datasets = await (await fetch("/api/datasets")).json();
     const dsSel = document.getElementById("ds-select");
-    dsSel.innerHTML = PN.state.datasets.map(d => `<option value="${d.id}">${d.source === "preloaded" ? "SOCAR 2026 (preloaded)" : d.label}</option>`).join("");
+    dsSel.innerHTML = dsOptions();
     dsSel.value = PN.state.ds;
   };
 

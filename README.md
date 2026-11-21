@@ -49,7 +49,7 @@ python run_all.py
 | 2 | `src/vfm.py` | Trains and validates the VFM, then writes the daily oil, water and gas predictions |
 | 3 | `src/pta.py` | Runs a build-up analysis on every shut-in, with plots and results |
 | 4 | `src/check_data.py` | Runs 57 automatic checks on data, VFM and PTA |
-| 5 | `src/check_app.py` | Runs 21 automatic checks on the web app (pages, API, numbers, problems and losses, hourly view, units, upload, exports) |
+| 5 | `src/check_app.py` | Runs 25 automatic checks on the web app (pages, API, numbers, problems and losses, hourly view, units, upload, exports) |
 
 The raw files in `Dataset/` are never modified.
 
