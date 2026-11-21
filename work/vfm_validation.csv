@@ -11,9 +11,9 @@ A: leave-one-test-out,trend only (no sensors),gas_rate_mscfd,85,7.61250327029258
 A: leave-one-test-out,v1: unconstrained ML (first model),oil_rate_stbd,85,2.6186588881017565,29.357973285078067,0.9989155903132847
 A: leave-one-test-out,v1: unconstrained ML (first model),water_rate_stbd,85,3.112650179467449,20.671156781052314,0.9969180263422136
 A: leave-one-test-out,v1: unconstrained ML (first model),gas_rate_mscfd,85,6.046610069549778,15.95949719870146,0.9952433110125088
-A: leave-one-test-out,v2: physics-hybrid (FINAL),oil_rate_stbd,85,2.537232086292609,28.866290948415212,0.9988855440054775
-A: leave-one-test-out,v2: physics-hybrid (FINAL),water_rate_stbd,85,3.729014256568304,25.40344547763662,0.9956263421687414
-A: leave-one-test-out,v2: physics-hybrid (FINAL),gas_rate_mscfd,85,6.212763559967781,16.591923697275263,0.9947560911185951
+A: leave-one-test-out,v2: physics-hybrid (FINAL),oil_rate_stbd,85,2.4760642741005223,28.207076885203595,0.9989590558444922
+A: leave-one-test-out,v2: physics-hybrid (FINAL),water_rate_stbd,85,3.5530054947533114,24.06056723113533,0.9958656921451493
+A: leave-one-test-out,v2: physics-hybrid (FINAL),gas_rate_mscfd,85,6.085144976831051,16.22030439948364,0.9950377569070739
 B: forward (last 2 tests),dummy: well average,oil_rate_stbd,20,15.037727582210298,193.38704761904768,0.9258870123834434
 B: forward (last 2 tests),dummy: well average,water_rate_stbd,20,9.81660095329899,66.32182811904765,0.9783482105416522
 B: forward (last 2 tests),dummy: well average,gas_rate_mscfd,20,15.491108223477474,49.88775597619046,0.9247053418371609
@@ -26,6 +26,6 @@ B: forward (last 2 tests),trend only (no sensors),gas_rate_mscfd,20,10.217247837
 B: forward (last 2 tests),v1: unconstrained ML (first model),oil_rate_stbd,20,2.587128458556667,33.34796601165301,0.9975880231949141
 B: forward (last 2 tests),v1: unconstrained ML (first model),water_rate_stbd,20,3.475464289174511,25.6565197895281,0.9959773612379881
 B: forward (last 2 tests),v1: unconstrained ML (first model),gas_rate_mscfd,20,5.157313219915918,12.191937704394652,0.9966712520690091
-B: forward (last 2 tests),v2: physics-hybrid (FINAL),oil_rate_stbd,20,3.349970152696089,36.039470217800954,0.9979767887650698
-B: forward (last 2 tests),v2: physics-hybrid (FINAL),water_rate_stbd,20,4.3502638914594876,30.55586340158713,0.9930342523003117
-B: forward (last 2 tests),v2: physics-hybrid (FINAL),gas_rate_mscfd,20,5.904550299756606,14.327713413814156,0.9953317897562397
+B: forward (last 2 tests),v2: physics-hybrid (FINAL),oil_rate_stbd,20,2.8419208852650804,33.13697393188592,0.9983370326370564
+B: forward (last 2 tests),v2: physics-hybrid (FINAL),water_rate_stbd,20,4.000779006489547,26.167653737071134,0.995082976924087
+B: forward (last 2 tests),v2: physics-hybrid (FINAL),gas_rate_mscfd,20,5.42747434845597,12.879104659215717,0.9961323695273673

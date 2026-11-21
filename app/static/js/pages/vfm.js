@@ -1,5 +1,5 @@
 (function () {
-  let d = null, hd = null, r0 = null, r1 = null;
+  let d = null, hd = null, r0 = null, r1 = null, valSplit = "B";
   const $ = id => document.getElementById(id);
   const T = ["oil_rate_stbd", "water_rate_stbd", "gas_rate_mscfd"];
   const NAMES = { oil_rate_stbd: "oil", water_rate_stbd: "water", gas_rate_mscfd: "gas" };
@@ -58,10 +58,20 @@
 
     // validation table
     const rows = d.validation;
-    $("val-table").innerHTML = `<tr><th>${PN.t("split")}</th><th>${PN.t("model")}</th><th class="n">${PN.t("oil")}</th><th class="n">${PN.t("water")}</th><th class="n">${PN.t("gas")}</th></tr>`
-      + rows.map(r => `<tr class="${r.model.includes("FINAL") ? "hl" : ""}"><td class="dim">${r.split.slice(0, 1)}</td><td>${r.model.replace("(FINAL)", "★")}</td>
-        <td class="n">${PN.fmt(r.oil_rate_stbd, 2)}</td><td class="n">${PN.fmt(r.water_rate_stbd, 2)}</td><td class="n">${PN.fmt(r.gas_rate_mscfd, 2)}</td></tr>`).join("")
-      + `<tr><td colspan="5" class="dim" style="font-size:12px">A = leave-one-test-out · B = forward (last 2 tests hidden)</td></tr>`;
+    const mkey = m => m.includes("well average") ? "avg" : m.includes("line between") ? "line" : m.includes("trend only") ? "trend" : m.startsWith("v1") ? "v1" : "v2";
+    const pc = v => `${PN.fmt(v, 2)} %`;
+    const mean = r => (r.oil_rate_stbd + r.water_rate_stbd + r.gas_rate_mscfd) / 3;
+    const drawVal = () => {
+      const grp = rows.filter(r => r.split.slice(0, 1) === valSplit).sort((a, b) => mean(a) - mean(b));
+      $("val-table").innerHTML = `<tr><th>${PN.t("model")}</th><th class="n">${PN.t("oil")}</th><th class="n">${PN.t("water")}</th><th class="n">${PN.t("gas")}</th></tr>`
+        + grp.map(r => { const k = mkey(r.model); return `<tr class="${r.model.includes("FINAL") ? "hl" : ""}" title="${PN.t("vd_" + k)}"><td>${PN.t("vm_" + k)}${r.model.includes("FINAL") ? " ★" : ""}</td>
+          <td class="n">${pc(r.oil_rate_stbd)}</td><td class="n">${pc(r.water_rate_stbd)}</td><td class="n">${pc(r.gas_rate_mscfd)}</td></tr>`; }).join("");
+      document.querySelectorAll("#val-split button").forEach(bt => bt.classList.toggle("on", bt.dataset.s === valSplit));
+    };
+    document.querySelectorAll("#val-split button").forEach(bt => bt.onclick = () => { valSplit = bt.dataset.s; drawVal(); });
+    drawVal();
+    $("val-how").innerHTML = `<details><summary>${PN.t("val_how_t")}</summary><ul style="margin:8px 0 0;padding-left:18px;display:grid;gap:6px;font-size:13px;color:var(--text-2)">`
+      + [1, 2, 3, 4, 5, 6].map(i => `<li>${PN.t("val_how" + i)}</li>`).join("") + `</ul></details>`;
 
     // physics: lift-cut response v1 vs v2
     const wells = Object.keys(d.diag.liftcut_v2).sort();

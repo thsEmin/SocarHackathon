@@ -39,7 +39,11 @@ def create_app():
     store.shared()
 
     def ds():
-        return store.get(request.args.get("ds", "preloaded"))
+        ds_id = request.args.get("ds", "preloaded")
+        d = store.get(ds_id, strict=True)
+        if d is None:
+            abort(404, f"unknown dataset {ds_id}")
+        return d
 
     def well_arg(d):
         w = request.args.get("well") or d.wells()[0]
@@ -169,6 +173,6 @@ def create_app():
     def not_found(e):
         if request.path.startswith("/api/"):
             return jsonify({"error": str(e.description)}), 404
-        return render_template("overview.html", page="overview"), 404
+        return render_template("404.html", page="notfound"), 404
 
     return app

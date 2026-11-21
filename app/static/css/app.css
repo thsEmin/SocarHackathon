@@ -120,6 +120,14 @@ select:focus, input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px v
   .row.cols-4.stats > .card:nth-child(2n) { border-right: 0; }
   .hero-in { padding-top: 30px; padding-bottom: 28px; }
 }
+/* narrow screens: brand + language on row 1, full-width scrollable menu on row 2 */
+@media (max-width: 1100px) {
+  :root { --header: 96px; }
+  .topbar-in { flex-wrap: wrap; align-content: center; gap: 6px 12px; }
+  .brand { order: 1; }
+  .topbar-right { order: 2; margin-left: auto; }
+  .nav { order: 3; flex: 0 0 100%; }
+}
 @media (max-width: 640px) {
   .wrap { padding: 0 16px; }
   .row.cols-6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -195,7 +203,7 @@ table.t tr.hl td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 
 /* alerts */
 .alerts { display: flex; flex-direction: column; gap: 8px; max-height: 640px; overflow: auto; padding-right: 2px; }
-.alert { display: grid; grid-template-columns: 22px 1fr; gap: 12px; padding: 11px 12px 11px 14px; border-radius: 10px; background: var(--bg-raised); border: 1px solid transparent; cursor: pointer; transition: border-color .15s, background .15s, transform .15s var(--ease); position: relative; overflow: hidden; }
+.alert { flex: 0 0 auto; display: grid; grid-template-columns: 22px 1fr; gap: 12px; padding: 11px 12px 11px 14px; border-radius: 10px; background: var(--bg-raised); border: 1px solid transparent; cursor: pointer; transition: border-color .15s, background .15s, transform .15s var(--ease); position: relative; overflow: hidden; }
 .alert:hover { background: var(--card); border-color: var(--line-strong); transform: translateX(2px); }
 .alert::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--info); }
 .alert svg { width: 18px; height: 18px; margin-top: 1px; }
@@ -336,3 +344,7 @@ input[type=date]:focus { outline: none; border-color: var(--accent); box-shadow:
 .badge.watch { color: var(--accent-ink); border-color: var(--accent-line); background: var(--accent-soft); }
 .badge.info { color: var(--text-2); }
 .empty { padding: 24px; text-align: center; color: var(--text-3); font-size: 13.5px; }
+
+/* VFM validation table */
+#val-table td.n, #val-table th.n { white-space: nowrap; }
+#val-table tr.grp td { background: var(--bg-raised); padding-top: 10px; }

@@ -1,5 +1,5 @@
 {
-  "lambda_learned_from_tests": 0.8840872375068575,
+  "lambda_learned_from_tests": 0.8644780638865514,
   "liftcut_oil_change_pct_v1": {
     "GL-01": 14.8,
     "GL-02": 10.6,
@@ -13,7 +13,7 @@
     "GL-10": 10.9
   },
   "liftcut_oil_change_pct_v2": {
-    "GL-01": -9.1,
+    "GL-01": -9.0,
     "GL-02": -5.1,
     "GL-03": -17.2,
     "GL-04": -6.7,
@@ -25,10 +25,10 @@
     "GL-10": -3.6
   },
   "normal_days_vs_test_pct_v1": -0.28683447598806255,
-  "normal_days_vs_test_pct_v2": -2.269636025792776,
+  "normal_days_vs_test_pct_v2": -2.184826717275179,
   "oil_coefficients_per_std": {
-    "choke_opening_pct": 0.0207,
-    "dh_pressure_psia_slow": 0.049,
-    "dh_temperature_degf_slow": 0.1069
+    "choke_opening_pct": 0.0245,
+    "dh_pressure_psia_slow": 0.1237,
+    "dh_temperature_degf_slow": 0.2006
   }
 }

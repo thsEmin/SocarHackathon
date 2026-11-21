@@ -88,7 +88,10 @@ def load_preloaded():
     return ds
 
 
-def get(ds_id):
+def get(ds_id, strict=False):
+    """strict=True returns None for an unknown id instead of falling back to the preloaded data."""
+    if strict:
+        return _DATASETS.get(ds_id)
     return _DATASETS.get(ds_id) or _DATASETS["preloaded"]
 
 
