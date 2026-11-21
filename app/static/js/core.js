@@ -90,7 +90,8 @@
   PN.signed = (v, d = 1) => (v == null || !isFinite(v) ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "") + PN.fmt(Math.abs(v), d));
   // own month names: browsers often lack Azerbaijani date data
   const MONTHS = { en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-                   az: ["Yan", "Fev", "Mar", "Apr", "May", "İyn", "İyl", "Avq", "Sen", "Okt", "Noy", "Dek"] };
+                   az: ["Yan", "Fev", "Mar", "Apr", "May", "İyn", "İyl", "Avq", "Sen", "Okt", "Noy", "Dek"],
+                   ru: ["янв", "фев", "мар", "апр", "мая", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"] };
   PN.date = (iso, time) => {
     if (!iso) return "—";
     const dt = new Date(iso), p2 = n => String(n).padStart(2, "0");
