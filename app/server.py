@@ -73,7 +73,8 @@ def create_app():
 
     @app.get("/api/overview")
     def api_overview():
-        return jsonify(insights.overview(ds()))
+        # optional period: ?start=YYYY-MM-DD&end=YYYY-MM-DD (either can be left out)
+        return jsonify(insights.overview(ds(), request.args.get("start"), request.args.get("end")))
 
     @app.get("/api/sensors")
     def api_sensors():

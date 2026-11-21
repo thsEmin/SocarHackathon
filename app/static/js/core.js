@@ -265,3 +265,42 @@
     if (page.load) await page.load();
   };
 })();
+
+/* Top bar: hidden until the mouse comes near the top of the window.
+   Shown briefly on page load so people know it is there; stays open while hovered, while a
+   control in it has keyboard focus, or while the units menu is open.
+   Touch screens (no mouse): shown at the top of the page and when scrolling up. */
+(function () {
+  const bar = document.querySelector(".topbar");
+  if (!bar) return;
+  const NEAR = 72;                                   // px from the top edge that reveals the bar
+  let timer = 0;
+  const show = () => { clearTimeout(timer); bar.classList.add("show"); };
+  const busy = () => bar.matches(":hover") || bar.contains(document.activeElement) ||
+                     !!bar.querySelector(".units-pop:not(.hidden)");
+  const hide = (delay = 350) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { if (!busy()) bar.classList.remove("show"); }, delay);
+  };
+
+  show(); hide(1800);                                // a short peek on load
+
+  if (window.matchMedia("(hover: hover)").matches) {
+    addEventListener("mousemove", e => {
+      if (e.clientY <= NEAR) show();
+      else if (e.clientY > bar.offsetHeight + 40 && bar.classList.contains("show")) hide();
+    }, { passive: true });
+    document.addEventListener("mouseleave", () => hide(600));   // mouse left the window
+    bar.addEventListener("mouseleave", () => hide());
+  } else {
+    let lastY = scrollY;
+    addEventListener("scroll", () => {
+      const y = scrollY;
+      if (y < 10 || y < lastY - 4) show(); else if (y > lastY + 4) hide(0);
+      lastY = y;
+    }, { passive: true });
+  }
+  bar.addEventListener("focusin", show);
+  bar.addEventListener("focusout", () => hide(600));
+  document.addEventListener("click", e => { if (!bar.contains(e.target)) hide(200); });
+})();

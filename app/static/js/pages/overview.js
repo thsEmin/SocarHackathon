@@ -20,9 +20,11 @@
   function render() {
     if (!data) return;
     const T = data.totals, P = data.totals_prev30;
-    PN.countUp($("k-oil"), PN.cv("liq", T.oil_rate_stbd)); $("k-oil-f").innerHTML = delta(T.oil_rate_stbd, P.oil_rate_stbd);
-    PN.countUp($("k-water"), PN.cv("liq", T.water_rate_stbd)); $("k-water-f").innerHTML = delta(T.water_rate_stbd, P.water_rate_stbd);
-    PN.countUp($("k-gas"), PN.cv("gas", T.gas_rate_mscfd)); $("k-gas-f").innerHTML = delta(T.gas_rate_mscfd, P.gas_rate_mscfd);
+    // "today" = last day of the chosen period; say which day when it is not the latest data
+    const on = data.range && data.date !== data.range.last ? ` <span class="dim">· ${PN.date(data.date)}</span>` : "";
+    PN.countUp($("k-oil"), PN.cv("liq", T.oil_rate_stbd)); $("k-oil-f").innerHTML = delta(T.oil_rate_stbd, P.oil_rate_stbd) + on;
+    PN.countUp($("k-water"), PN.cv("liq", T.water_rate_stbd)); $("k-water-f").innerHTML = delta(T.water_rate_stbd, P.water_rate_stbd) + on;
+    PN.countUp($("k-gas"), PN.cv("gas", T.gas_rate_mscfd)); $("k-gas-f").innerHTML = delta(T.gas_rate_mscfd, P.gas_rate_mscfd) + on;
     const wc = T.water_rate_stbd / (T.water_rate_stbd + T.oil_rate_stbd) * 100;
     const wcp = P.water_rate_stbd / (P.water_rate_stbd + P.oil_rate_stbd) * 100;
     PN.countUp($("k-wc"), wc, 1);
@@ -49,7 +51,7 @@
             ${spark(w.spark, PN.colors.oil)}
           </div>`).join("")}</div>
         <div class="pipe"></div>
-      </div>`).join("") + `<div class="sink"><span class="dim">→</span><span class="box">${PN.t("separator")}</span></div>`;
+      </div>`).join("") + `<div class="sink"><span class="dim">→</span><a class="box" href="/export">${PN.t("separator")}</a></div>`;
     document.querySelectorAll(".tile").forEach(el => el.onclick = () => { PN.setWell(el.dataset.well); location.href = "/well"; });
 
     // alerts
@@ -79,11 +81,43 @@
          yaxis2: { title: { text: PN.t("mscfd") }, overlaying: "y", side: "right", showgrid: false, rangemode: "tozero" }, margin: { r: 64 } });
   }
 
-  PN.start({
-    async load() {
-      try { data = await PN.api("/api/overview"); render(); }
-      catch (e) { PN.toast(`${PN.t("error")}: ${e.message}`); }
-    },
-    render,
+  // ---- period (date range): like VFM. The server clamps the dates to the dataset and returns the
+  //      period it used (data.range), so the inputs always show what the numbers are for.
+  let r0 = null, r1 = null, dsId = null, req = 0;
+  const addDays = (iso, n) => { const t = new Date(iso + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
+  const KEY = "pn.overview.range";
+  try { const saved = JSON.parse(sessionStorage.getItem(KEY) || "null"); if (saved) { r0 = saved.r0; r1 = saved.r1; dsId = saved.ds; } } catch (e) { /* no storage */ }
+
+  function showRange() {
+    const R = data.range;
+    $("r-from").value = R.start; $("r-to").value = R.end;
+    $("r-from").min = $("r-to").min = R.first; $("r-from").max = $("r-to").max = R.last;
+    document.querySelectorAll("#r-quick button").forEach(b => {
+      const n = +b.dataset.days;
+      b.classList.toggle("on", n ? (R.end === R.last && R.start === addDays(R.last, -n + 1)) : (R.start === R.first && R.end === R.last));
+    });
+  }
+  function setRange(a, b) {
+    r0 = a || null; r1 = b || null;
+    try { sessionStorage.setItem(KEY, JSON.stringify({ r0, r1, ds: PN.state.ds })); } catch (e) { /* no storage */ }
+    load();
+  }
+  $("r-from").onchange = () => setRange($("r-from").value, $("r-to").value);
+  $("r-to").onchange = () => setRange($("r-from").value, $("r-to").value);
+  document.querySelectorAll("#r-quick button").forEach(b => b.onclick = () => {
+    const n = +b.dataset.days, last = data ? data.range.last : null;
+    n && last ? setRange(addDays(last, -n + 1), last) : setRange(null, null);
   });
+
+  async function load() {
+    if (dsId !== PN.state.ds) { r0 = r1 = null; dsId = PN.state.ds; }   // new dataset: start from its full period
+    const my = ++req;
+    try {
+      const d = await PN.api("/api/overview", { start: r0, end: r1 });
+      if (my !== req) return;                                            // a newer request is on its way
+      data = d; showRange(); render();
+    } catch (e) { PN.toast(`${PN.t("error")}: ${e.message}`); }
+  }
+
+  PN.start({ load, render });
 })();
