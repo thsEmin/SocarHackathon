@@ -1,0 +1,13 @@
+# local tool settings
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / Office temp files
+~$*
+.DS_Store
+Thumbs.db

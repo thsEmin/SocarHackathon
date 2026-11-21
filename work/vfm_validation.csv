@@ -1,0 +1,31 @@
+split,model,target,n,MAPE_%,MAE,R2
+A: leave-one-test-out,dummy: well average,oil_rate_stbd,85,8.077129925481374,111.88831932773111,0.9785492142843665
+A: leave-one-test-out,dummy: well average,water_rate_stbd,85,7.054579719473112,46.66512933193278,0.9846123200685789
+A: leave-one-test-out,dummy: well average,gas_rate_mscfd,85,9.891868086152202,32.126665282913166,0.9770498664467677
+A: leave-one-test-out,dummy: line between tests,oil_rate_stbd,85,4.088610360980397,45.345300498149996,0.9970700680037601
+A: leave-one-test-out,dummy: line between tests,water_rate_stbd,85,4.674410584221817,29.29129632021259,0.9947827068554267
+A: leave-one-test-out,dummy: line between tests,gas_rate_mscfd,85,7.654997716385703,20.73773090293571,0.9920980123484825
+A: leave-one-test-out,trend only (no sensors),oil_rate_stbd,85,4.552866172999687,51.919776545211896,0.9955543995016529
+A: leave-one-test-out,trend only (no sensors),water_rate_stbd,85,4.672613512983985,28.844490716623877,0.9942327229235239
+A: leave-one-test-out,trend only (no sensors),gas_rate_mscfd,85,7.612503270292584,21.903062913447755,0.9895257614197837
+A: leave-one-test-out,v1: unconstrained ML (first model),oil_rate_stbd,85,2.6186588881017565,29.357973285078067,0.9989155903132847
+A: leave-one-test-out,v1: unconstrained ML (first model),water_rate_stbd,85,3.112650179467449,20.671156781052314,0.9969180263422136
+A: leave-one-test-out,v1: unconstrained ML (first model),gas_rate_mscfd,85,6.046610069549778,15.95949719870146,0.9952433110125088
+A: leave-one-test-out,v2: physics-hybrid (FINAL),oil_rate_stbd,85,2.537232086292609,28.866290948415212,0.9988855440054775
+A: leave-one-test-out,v2: physics-hybrid (FINAL),water_rate_stbd,85,3.729014256568304,25.40344547763662,0.9956263421687414
+A: leave-one-test-out,v2: physics-hybrid (FINAL),gas_rate_mscfd,85,6.212763559967781,16.591923697275263,0.9947560911185951
+B: forward (last 2 tests),dummy: well average,oil_rate_stbd,20,15.037727582210298,193.38704761904768,0.9258870123834434
+B: forward (last 2 tests),dummy: well average,water_rate_stbd,20,9.81660095329899,66.32182811904765,0.9783482105416522
+B: forward (last 2 tests),dummy: well average,gas_rate_mscfd,20,15.491108223477474,49.88775597619046,0.9247053418371609
+B: forward (last 2 tests),dummy: line between tests,oil_rate_stbd,20,8.088754614508986,92.36999999999999,0.983795756445373
+B: forward (last 2 tests),dummy: line between tests,water_rate_stbd,20,7.460142295229748,43.83978050000002,0.9917875855715702
+B: forward (last 2 tests),dummy: line between tests,gas_rate_mscfd,20,10.763132495870373,29.903754500000012,0.978251044940979
+B: forward (last 2 tests),trend only (no sensors),oil_rate_stbd,20,7.142093051887363,73.77641659936637,0.9904469493929173
+B: forward (last 2 tests),trend only (no sensors),water_rate_stbd,20,6.3821285785215816,42.08590381885524,0.9889636891558242
+B: forward (last 2 tests),trend only (no sensors),gas_rate_mscfd,20,10.217247837751417,30.59424540092268,0.9740461636204732
+B: forward (last 2 tests),v1: unconstrained ML (first model),oil_rate_stbd,20,2.587128458556667,33.34796601165301,0.9975880231949141
+B: forward (last 2 tests),v1: unconstrained ML (first model),water_rate_stbd,20,3.475464289174511,25.6565197895281,0.9959773612379881
+B: forward (last 2 tests),v1: unconstrained ML (first model),gas_rate_mscfd,20,5.157313219915918,12.191937704394652,0.9966712520690091
+B: forward (last 2 tests),v2: physics-hybrid (FINAL),oil_rate_stbd,20,3.349970152696089,36.039470217800954,0.9979767887650698
+B: forward (last 2 tests),v2: physics-hybrid (FINAL),water_rate_stbd,20,4.3502638914594876,30.55586340158713,0.9930342523003117
+B: forward (last 2 tests),v2: physics-hybrid (FINAL),gas_rate_mscfd,20,5.904550299756606,14.327713413814156,0.9953317897562397

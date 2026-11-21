@@ -1,0 +1,15 @@
+{
+  "rows_raw":3917073,
+  "exact_duplicates_dropped":2513,
+  "conflicting_duplicates_merged":0,
+  "sentinels_to_nan":7410,
+  "spikes_removed":{
+    "whp_psia":108,
+    "whp_downstream_psia":55,
+    "dh_pressure_psia":105,
+    "dh_temperature_degf":41,
+    "annulus_pressure_psia":85,
+    "gas_lift_rate_mscfd":54
+  },
+  "rows_clean":3914560
+}
