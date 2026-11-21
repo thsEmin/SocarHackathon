@@ -63,7 +63,41 @@ def well_info(ds, well):
             "drawdown": float(s["drawdown"].drawdown_psi.get(well, np.nan))}
 
 
+def vfm_hourly(ds, well, date):
+    """24 hourly rates for one day: the VFM run on hourly sensor means, then scaled so that the
+    mean of the 24 hours equals the daily VFM value (hourly and daily views always agree)."""
+    from . import diagnostics
+    try:
+        day = pd.Timestamp(date).normalize()
+    except (ValueError, TypeError):
+        raise ValueError("please choose a valid date")
+    row = ds.preds[(ds.preds.well_name == well) & (ds.preds.date == day)]
+    if row.empty:
+        raise ValueError(f"no data for {well} on {date}")
+    g = diagnostics.hourly_rates(ds, well, day, day + pd.Timedelta(days=1))
+    hours = pd.date_range(day, periods=24, freq="h")
+    g = (g.set_index("hour").reindex(hours) if len(g) else pd.DataFrame(index=hours, columns=T + ["shut_frac"]))
+    out = {"well": well, "date": str(day.date()), "t": [h.isoformat() for h in hours],
+           "daily": {k: float(row[k].iloc[0]) for k in T}}
+    for k in T:
+        raw = pd.to_numeric(g[k], errors="coerce")
+        m = raw.mean()
+        scale = out["daily"][k] / m if m and np.isfinite(m) and m > 0 else 1.0
+        out[k] = _r((raw * scale).values, 1)
+    for c in ["choke_opening_pct", "dh_pressure_psia", "whp_psia", "gas_lift_rate_mscfd"]:
+        out[c] = _r(pd.to_numeric(g[c], errors="coerce").values, 1) if c in g else [None] * 24
+    out["shut_frac"] = _r(pd.to_numeric(g["shut_frac"], errors="coerce").fillna(1).values, 2)
+    return out
+
+
 # ------------------------------------------------------------------ exports
+def export_problems_xlsx(ds, oil_price, gas_price):
+    from . import diagnostics
+    buf = io.BytesIO()
+    diagnostics.export_xlsx(ds, oil_price, gas_price, buf)
+    return buf.getvalue()
+
+
 def export_vfm_xlsx(ds):
     s = store.shared()
     piv = s["validation"].pivot_table(index=["split", "model"], columns="target", values="MAPE_%",

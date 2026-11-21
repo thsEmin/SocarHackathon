@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <div class="card-h"><h3 data-i18n="pb_prices"></h3><span class="sub" data-i18n="pb_prices_sub"></span>
+    <div class="right"><button class="btn" id="pb-export" data-icon="download"><span data-i18n="pb_export"></span></button></div></div>
+  <div class="price-bar">
+    <label><span data-i18n="pb_oil_price"></span><input type="number" id="price-oil" min="0" step="1" value="70"></label>
+    <label><span data-i18n="pb_gas_price"></span><input type="number" id="price-gas" min="0" step="0.1" value="3"></label>
+    <span class="dim" style="font-size:12px;max-width:520px" data-i18n="pb_prices_note"></span>
+  </div>
+</section>
+
+<section class="row cols-4 stats">
+  <div class="card kpi oil"><div class="label" data-i18n="pb_k_total"></div><div class="value"><span id="k-total">—</span><span class="unit">$</span></div><div class="foot" id="k-total-f"></div></div>
+  <div class="card kpi gas"><div class="label" data-i18n="pb_k_now"></div><div class="value"><span id="k-now">—</span><span class="unit" data-i18n="pb_usd_d"></span></div><div class="foot" id="k-now-f"></div></div>
+  <div class="card kpi acc"><div class="label" data-i18n="pb_k_wells"></div><div class="value"><span id="k-wells">—</span></div><div class="foot" id="k-wells-f"></div></div>
+  <div class="card kpi water"><div class="label" data-i18n="pb_k_cause"></div><div class="value" style="font-size:22px"><span id="k-cause">—</span></div><div class="foot" id="k-cause-f"></div></div>
+</section>
+
+<section class="row" style="grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr)">
+  <div class="card">
+    <div class="card-h"><h3 data-i18n="pb_by_well"></h3><span class="sub" data-i18n="pb_by_well_sub"></span></div>
+    <div class="chart" id="pb-well-chart" style="height:360px"><div class="skel" style="height:100%"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3 data-i18n="pb_by_cause"></h3></div>
+    <div class="chart" id="pb-cause-chart" style="height:360px"><div class="skel" style="height:100%"></div></div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-h"><h3 data-i18n="pb_cum"></h3><span class="sub" data-i18n="pb_cum_sub"></span></div>
+  <div class="chart" id="pb-cum-chart" style="height:320px"><div class="skel" style="height:100%"></div></div>
+</section>
+
+<section class="card">
+  <div class="card-h"><h3 data-i18n="pb_list"></h3><span class="sub" data-i18n="pb_list_sub"></span>
+    <div class="right">
+      <div class="seg" id="pb-when"><button data-when="all" class="on" data-i18n="pb_all"></button><button data-when="now" data-i18n="pb_now"></button><button data-when="future" data-i18n="pb_future"></button><button data-when="past" data-i18n="pb_past"></button></div>
+      <select id="pb-well"></select>
+    </div></div>
+  <div class="issues" id="pb-issues"><div class="skel" style="height:160px"></div></div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/pages/problems.js') }}"></script>{% endblock %}

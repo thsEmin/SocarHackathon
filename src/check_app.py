@@ -27,7 +27,8 @@ check("APP: every page renders", all(v == 200 for v in codes.values()), str(code
 
 # API endpoints
 eps = ["/api/datasets", "/api/overview", "/api/sensors?well=GL-04", "/api/vfm?well=GL-07", "/api/well?well=GL-09",
-       "/api/pta/events", "/api/pta/2", "/api/whatif?well=GL-05&choke=3&lift=10"]
+       "/api/pta/events", "/api/pta/2", "/api/whatif?well=GL-05&choke=3&lift=10", "/api/problems",
+       "/api/vfm/hourly?well=GL-01&date=2025-06-14"]
 st = {e: c.get(e).status_code for e in eps}
 check("APP: every API endpoint answers", all(v == 200 for v in st.values()), ", ".join(f"{k.split('?')[0]}={v}" for k, v in st.items()))
 
@@ -57,6 +58,42 @@ check("APP: what-if at 0/0 changes nothing", abs(base["factor"] - 1) < 1e-12)
 check("APP: what-if follows physics (more lift / more choke -> more oil, less lift -> less)",
       more_lift["factor"] > 1 > less_lift["factor"] and more_choke["factor"] > 1 and more_lift["dpwf"] < 0)
 
+# problems: detection, root cause texts and lost production
+import re  # noqa: E402
+pb = c.get("/api/problems").get_json()
+iss = pb["issues"]
+i18n = (ROOT / "app" / "static" / "js" / "i18n.js").read_text(encoding="utf-8")
+missing = sorted({f"pb_{i['type']}{s}" for i in iss for s in ("_t", "_c", "_f")} - set(re.findall(r"\b(pb_\w+):", i18n)))
+check("APP: problems found where the data show them (GL-01 damage alarm, 14-Jun lift-gas outage, shut-ins)",
+      any(i["well"] == "GL-01" and i["type"] == "damage" and i["severity"] == "alarm" for i in iss)
+      and any(i["type"] == "liftfield" and i["loss_oil_stb"] > 0 for i in iss)
+      and sum(i["type"] == "downtime" for i in iss) >= 3)
+check("APP: every problem has title, root cause and solution text (EN)", not missing, ", ".join(missing))
+check("APP: lost production is never negative and adds up",
+      all(r["oil_stb"] >= 0 and r["gas_mscf"] >= 0 for r in pb["loss_daily"])
+      and abs(sum(r["oil_stb"] for r in pb["loss_daily"]) - sum(r["oil_stb"] for r in pb["loss_by_well"])) < 1)
+ov_bad = {w["well"] for w in ov["wells"] if w["status"] != "ok"}
+pb_bad = {i["well"] for i in iss if i["when"] == "now" and i["severity"] in ("alarm", "warning")}
+check("APP: overview traffic lights = current problems", ov_bad == pb_bad, f"{sorted(ov_bad)} vs {sorted(pb_bad)}")
+
+# hourly VFM: 24 hours average to the daily value, shut-in hours are zero
+pdl = pred.assign(date=pd.to_datetime(pred.date))
+ok_h = True
+for w, day in [("GL-01", "2025-06-14"), ("GL-01", "2025-04-15"), ("GL-07", "2025-03-01")]:
+    h = c.get(f"/api/vfm/hourly?well={w}&date={day}").get_json()
+    daily = pdl[(pdl.well_name == w) & (pdl.date == day)].oil_rate_stbd.iloc[0]
+    vals = [v if v is not None else 0 for v in h["oil_rate_stbd"]]
+    ok_h &= len(vals) == 24 and abs(sum(vals) / 24 - daily) < 0.5
+    ok_h &= all(v == 0 for v, sf in zip(vals, h["shut_frac"]) if sf == 1)
+check("APP: hourly VFM adds up to the daily value; shut-in hours are 0", ok_h)
+check("APP: hourly view refuses a day without data", c.get("/api/vfm/hourly?well=GL-01&date=2031-01-01").status_code == 400)
+
+# display units: conversion factors used by the browser
+core = (ROOT / "app" / "static" / "js" / "core.js").read_text(encoding="utf-8")
+fac = lambda unit: float(re.search(r'\b' + unit + r': \["[^"]+", ([0-9.e]+)\]', core).group(1))
+check("APP: unit conversion factors (1000 psi = 68.95 bar, 1000 stb = 158.99 m3, 1 Mscf = 28.32 m3)",
+      abs(1000 * fac("bar") - 68.9476) < 1e-3 and abs(1000 * fac("m3d") - 158.987) < 1e-2 and abs(fac("kPa") - 6.89476) < 1e-5)
+
 # exports
 ok = True
 for k in ("vfm", "pta", "plots"):
@@ -64,6 +101,9 @@ for k in ("vfm", "pta", "plots"):
     ok &= r.status_code == 200 and len(r.data) > 1000
 x = pd.read_excel(io.BytesIO(c.get("/api/export/vfm").data), sheet_name="predictions")
 check("APP: exports download (VFM Excel, PTA Excel, plots zip)", ok)
+rp = c.get("/api/export/problems?oil_price=80&gas_price=3")
+sheets = pd.ExcelFile(io.BytesIO(rp.data)).sheet_names if rp.status_code == 200 else []
+check("APP: problems & losses Excel downloads", sheets == ["issues", "loss_by_well_cause", "loss_daily", "assumptions"], str(sheets))
 check("APP: exported VFM Excel has the required columns",
       list(x.columns) == ["date", "well_name", "oil_rate_stbd", "water_rate_stbd", "gas_rate_mscfd"] and len(x) == len(pred))
 
@@ -79,6 +119,10 @@ for _ in range(120):
         break
     time.sleep(0.5)
 check("APP: upload -> clean -> VFM works", j["status"] == "done", j.get("error") or j.get("dataset"))
+if j["status"] == "done":
+    up = {e: c.get(f"{e}{'&' if '?' in e else '?'}ds={j['dataset']}").status_code
+          for e in ["/api/problems", "/api/overview", "/api/vfm/hourly?well=GL-01&date=" + str(sub.timestamp.min())[:10]]}
+    check("APP: problems, overview and hourly view work on uploaded data", all(v == 200 for v in up.values()), str(up))
 bad = c.post("/api/upload", data={"hf": (io.BytesIO(b"a,b\n1,2\n"), "bad.csv")}, content_type="multipart/form-data").get_json()["job"]
 for _ in range(40):
     jb = c.get(f"/api/upload/{bad}").get_json()

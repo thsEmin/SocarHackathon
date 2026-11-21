@@ -8,9 +8,9 @@ from flask import Flask, jsonify, render_template, request, send_file, abort
 from flask.json.provider import DefaultJSONProvider
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from app.services import store, insights, pta_service, views  # noqa: E402
+from app.services import store, insights, pta_service, views, diagnostics  # noqa: E402
 
-PAGES = ["home", "overview","data", "sensors", "vfm", "whatif", "pta", "well", "export"]
+PAGES = ["home", "overview", "problems", "data", "sensors", "vfm", "whatif", "pta", "well", "export"]
 
 
 class SafeJSON(DefaultJSONProvider):
@@ -77,6 +77,18 @@ def create_app():
         d = ds()
         return jsonify(views.vfm(d, well_arg(d)))
 
+    @app.get("/api/vfm/hourly")
+    def api_vfm_hourly():
+        d = ds()
+        try:
+            return jsonify(views.vfm_hourly(d, well_arg(d), request.args.get("date", "")))
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+
+    @app.get("/api/problems")
+    def api_problems():
+        return jsonify(diagnostics.problems(ds()))
+
     @app.get("/api/well")
     def api_well():
         d = ds()
@@ -134,6 +146,11 @@ def create_app():
                   "pta": (views.export_pta_xlsx, "PTA_results.xlsx",
                           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
                   "plots": (views.export_plots_zip, "PTA_plots.zip", "application/zip")}
+        if kind == "problems":
+            oil = request.args.get("oil_price", 70, type=float)
+            gas = request.args.get("gas_price", 3, type=float)
+            makers[kind] = (lambda d_: views.export_problems_xlsx(d_, oil, gas), "Problems_and_losses.xlsx",
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         if kind not in makers:
             abort(404)
         fn, name, mime = makers[kind]

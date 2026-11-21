@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="card">
-  <div class="card-h"><h3 id="s-title"></h3><span class="sub" data-i18n="shaded"></span></div>
+  <div class="card-h"><h3 id="s-title"></h3><span class="sub" data-i18n="shaded"></span>
+    <div class="right range-bar">
+      <label><span data-i18n="rng_from"></span><input type="date" id="r-from"></label>
+      <label><span data-i18n="rng_to"></span><input type="date" id="r-to"></label>
+    </div></div>
   <div class="chart" id="sensor-chart" style="height:760px"><div class="skel" style="height:100%"></div></div>
 </section>
 {% endblock %}

@@ -17,8 +17,61 @@
     page: null,
   };
 
+  // ---------------- units (display only: the server always works in field units)
+  // each option: [label, factor, offset]  ->  shown = value * factor + offset
+  PN.UNITS = {
+    p:   { psi: ["psia", 1], bar: ["bar", 0.0689476], kPa: ["kPa", 6.89476], MPa: ["MPa", 0.00689476], Pa: ["Pa", 6894.76], atm: ["atm", 0.0680460] },
+    dp:  { psi: ["psi", 1], bar: ["bar", 0.0689476], kPa: ["kPa", 6.89476], MPa: ["MPa", 0.00689476], Pa: ["Pa", 6894.76], atm: ["atm", 0.0680460] },
+    t:   { F: ["°F", 1, 0], C: ["°C", 5 / 9, -32 * 5 / 9], K: ["K", 5 / 9, 255.372] },
+    liq: { stbd: ["stb/d", 1], m3d: ["m³/d", 0.158987], bpd_k: ["Mstb/d", 0.001] },
+    gas: { mscfd: ["Mscf/d", 1], m3d: ["m³/d", 28.3168], km3d: ["10³ m³/d", 0.0283168], mmscfd: ["MMscf/d", 0.001] },
+    len: { ft: ["ft", 1], m: ["m", 0.3048] },
+  };
+  PN.UNIT_DEFAULT = { p: "psi", t: "F", liq: "stbd", gas: "mscfd", len: "ft" };
+  PN.UNIT_PRESETS = { field: { p: "psi", t: "F", liq: "stbd", gas: "mscfd", len: "ft" },
+                      metric: { p: "bar", t: "C", liq: "m3d", gas: "m3d", len: "m" },
+                      si: { p: "kPa", t: "K", liq: "m3d", gas: "m3d", len: "m" } };
+  try { PN.state.units = Object.assign({}, PN.UNIT_DEFAULT, JSON.parse(store.get("units", "{}"))); }
+  catch (e) { PN.state.units = Object.assign({}, PN.UNIT_DEFAULT); }
+  const sel = kind => { const k = kind === "dp" ? "p" : kind; const tab = PN.UNITS[kind]; return tab[PN.state.units[k]] || tab[Object.keys(tab)[0]]; };
+  PN.ul = kind => sel(kind)[0];                                                       // unit label
+  PN.cv = (kind, v) => (v == null || !isFinite(v)) ? v : v * sel(kind)[1] + (sel(kind)[2] || 0);   // convert one value
+  PN.cva = (kind, a) => (a || []).map(v => PN.cv(kind, v));                          // convert an array
+  // volumes: a rate unit "per day" -> the matching volume unit (stb/d -> stb, m³/d -> m³)
+  PN.vl = kind => PN.ul(kind).replace("/d", "");
+  PN.setUnits = function (u) {
+    PN.state.units = Object.assign({}, PN.state.units, u); store.set("units", JSON.stringify(PN.state.units));
+    PN.applyI18n(); PN.page && PN.page.render && PN.page.render();
+  };
+  const UNIT_KEYS = { stbd: () => PN.ul("liq"), mscfd: () => PN.ul("gas"), psia: () => PN.ul("p"), psi: () => PN.ul("dp"),
+                      degf: () => PN.ul("t"), ft: () => PN.ul("len") };
+
+  // problem-issue evidence -> text parameters, converted to the chosen units
+  const EV_KIND = { pwf: "p", pb: "p", dwhp: "dp", ddhp: "dp", dp_skin: "dp", gain: "liq", q: "liq", dq: "liq", q90: "liq",
+                    dq90: "liq", lift: "gas", lift_b: "gas" };
+  const unitDigits = kind => (["MPa", "bar", "atm", "Mstb/d", "MMscf/d", "10³ m³/d"].includes(PN.ul(kind)) ? 1 : 0);
+  PN.issueParams = function (ev) {
+    const o = {};
+    Object.entries(ev || {}).forEach(([k, v]) => {
+      if (v == null) o[k] = "—";
+      else if (k === "rate" && ev.pb != null) o[k] = `${PN.signed(PN.cv("dp", v), 1)} ${PN.ul("dp")}`;
+      else if (EV_KIND[k]) o[k] = `${PN.fmt(PN.cv(EV_KIND[k], v), unitDigits(EV_KIND[k]))} ${PN.ul(EV_KIND[k])}`;
+      else if (k === "skin") o[k] = PN.signed(v, 1);
+      else if (["dec", "pct", "dgor"].includes(k)) o[k] = PN.signed(v, 0);
+      else if (["dwc", "rate"].includes(k)) o[k] = PN.signed(v, 1);
+      else o[k] = PN.fmt(v, Math.abs(v) < 100 && v % 1 ? 1 : 0);
+    });
+    return o;
+  };
+  PN.usdShort = v => {
+    if (v == null || !isFinite(v)) return "—";
+    const a = Math.abs(v);
+    return a >= 1e6 ? `$${PN.fmt(v / 1e6, 2)}M` : a >= 1e3 ? `$${PN.fmt(v / 1e3, 1)}k` : `$${PN.fmt(v, 0)}`;
+  };
+
   // ---------------- i18n
   PN.t = function (key, p) {
+    if (UNIT_KEYS[key]) return UNIT_KEYS[key]();
     const d = (window.I18N[PN.state.lang] || {}), e = window.I18N.en;
     let s = d[key] != null ? d[key] : (e[key] != null ? e[key] : key);
     if (p) s = s.replace(/\{(\w+)\}/g, (_, k) => (p[k] != null ? p[k] : ""));
@@ -113,6 +166,7 @@
     pta: "M3 3v18h18M7 15c3-1 4-6 7-8s4-1 6-1",
     well: "M8 3h8M10 3v18M14 3v18M6 21h12M10 9h4M10 14h4",
     export: "M12 3v12M7 10l5 5 5-5M5 21h14",
+    problems: "M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
     alert: "M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
     info: "M12 16v-4M12 8h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z",
     upload: "M12 21V9M7 14l5-5 5 5M5 3h14",
@@ -135,10 +189,11 @@
       b.onclick = () => {
         PN.state.lang = b.dataset.lang; store.set("lang", PN.state.lang);
         seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-        PN.applyI18n(); PN.page && PN.page.render && PN.page.render();
+        PN.applyI18n(); PN.redrawUnits && PN.redrawUnits(); PN.page && PN.page.render && PN.page.render();
       };
     });
     PN.applyI18n();
+    initUnits();
 
     // datasets + wells
     try { PN.state.datasets = await (await fetch("/api/datasets")).json(); } catch (e) { PN.state.datasets = []; }
@@ -150,6 +205,29 @@
     dsSel.onchange = () => { PN.setDataset(dsSel.value); };
     fillWells();
   }
+  // units menu in the top bar: presets + one choice per quantity
+  function initUnits() {
+    const box = document.getElementById("units");
+    if (!box) return;
+    const btn = box.querySelector("button"), pop = box.querySelector(".units-pop");
+    const kinds = [["p", "u_pressure"], ["t", "u_temp"], ["liq", "u_liq"], ["gas", "u_gas"], ["len", "u_len"]];
+    const draw = () => {
+      const cur = JSON.stringify(PN.state.units);
+      const preset = Object.keys(PN.UNIT_PRESETS).find(k => JSON.stringify(Object.assign({}, PN.state.units, PN.UNIT_PRESETS[k])) === cur && Object.keys(PN.UNIT_PRESETS[k]).every(x => PN.UNIT_PRESETS[k][x] === PN.state.units[x]));
+      pop.innerHTML = `<div class="seg units-presets">${Object.keys(PN.UNIT_PRESETS).map(k => `<button data-preset="${k}" class="${k === preset ? "on" : ""}">${PN.t("u_" + k)}</button>`).join("")}</div>`
+        + kinds.map(([k, lbl]) => `<label class="units-row"><span>${PN.t(lbl)}</span><select data-kind="${k}">${Object.entries(PN.UNITS[k]).map(([id, u]) => `<option value="${id}" ${PN.state.units[k] === id ? "selected" : ""}>${u[0]}</option>`).join("")}</select></label>`).join("")
+        + `<div class="units-note">${PN.t("u_note")}</div>`;
+      btn.querySelector(".units-cur").textContent = `${PN.ul("p")} · ${PN.ul("t")} · ${PN.ul("liq")}`;
+      pop.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => { PN.setUnits(PN.UNIT_PRESETS[b.dataset.preset]); draw(); });
+      pop.querySelectorAll("select").forEach(s => s.onchange = () => { PN.setUnits({ [s.dataset.kind]: s.value }); draw(); });
+    };
+    btn.onclick = e => { e.stopPropagation(); pop.classList.toggle("hidden"); };
+    pop.onclick = e => e.stopPropagation();
+    document.addEventListener("click", () => pop.classList.add("hidden"));
+    PN.redrawUnits = draw;
+    draw();
+  }
+
   function fillWells() {
     const ds = PN.state.datasets.find(d => d.id === PN.state.ds);
     const wells = ds ? ds.wells : [];

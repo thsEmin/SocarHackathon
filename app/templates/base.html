@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
   {% block head %}{% endblock %}
 </head>
-{% set group = 'nav_monitor' if page in ['overview', 'data', 'sensors'] else ('nav_deliver' if page == 'export' else 'nav_analyse') %}
+{% set group = 'nav_monitor' if page in ['overview', 'problems', 'data', 'sensors'] else ('nav_deliver' if page == 'export' else 'nav_analyse') %}
 <body data-page="{{ page }}">
 <header class="topbar">
   <div class="wrap topbar-in">
@@ -21,6 +21,7 @@
     <nav class="nav" aria-label="Main">
       <a href="/" data-page="home"><span data-i18n="n_home"></span></a>
       <a href="/overview" data-page="overview"><span data-i18n="n_overview"></span></a>
+      <a href="/problems" data-page="problems"><span data-i18n="n_problems"></span></a>
       <a href="/data" data-page="data"><span data-i18n="n_data"></span></a>
       <a href="/sensors" data-page="sensors"><span data-i18n="n_sensors"></span></a>
       <a href="/vfm" data-page="vfm"><span data-i18n="n_vfm"></span></a>
@@ -30,6 +31,7 @@
       <a href="/export" data-page="export"><span data-i18n="n_export"></span></a>
     </nav>
     <div class="topbar-right">
+      <div class="units" id="units"><button class="units-btn" type="button" aria-haspopup="true"><span data-i18n="u_units"></span><span class="units-cur mono"></span></button><div class="units-pop hidden"></div></div>
       <div class="seg" id="lang" aria-label="Language"><button data-lang="en">EN</button><button data-lang="az">AZ</button></div>
     </div>
   </div>
@@ -46,7 +48,7 @@
     <div class="hero-ctl">
       <div class="ctl ctl-period"><span class="live-dot"></span><span class="mono" id="ds-period"></span></div>
       <label class="ctl"><span data-i18n="dataset"></span><select id="ds-select"></select></label>
-      <label class="ctl" {% if page in ['overview', 'data', 'export'] %}style="display:none"{% endif %}><span data-i18n="well"></span><select id="well-select"></select></label>
+      <label class="ctl" {% if page in ['overview', 'problems', 'data', 'export'] %}style="display:none"{% endif %}><span data-i18n="well"></span><select id="well-select"></select></label>
     </div>
   </div>
 </section>

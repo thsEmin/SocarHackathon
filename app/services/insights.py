@@ -38,26 +38,23 @@ def lift_gas_events(ds):
 
 # ------------------------------------------------------------------ status per well
 def well_status(ds):
-    pta_rows = {r["well_name"]: r for r in pta_service.events(ds)}  # latest event per well wins
-    p = ds.preds
-    last = p.date.max()
-    out = {}
-    for w in ds.wells():
-        r = pta_rows.get(w)
-        status, reasons = "ok", []
-        if r:
-            if r["skin"] > 5:
-                status = "alarm"; reasons.append({"key": "st_damaged", "skin": r["skin"]})
-            elif r["skin"] > 1.5:
-                status = "warning"; reasons.append({"key": "st_mild_damage", "skin": r["skin"]})
-        recent = p[(p.well_name == w) & (p.date > last - pd.Timedelta(days=7))]
-        if recent.low_coverage.any() and status == "ok":
-            status = "warning"; reasons.append({"key": "st_data_gap"})
-        out[w] = {"status": status, "reasons": reasons, "has_pta": r is not None}
+    """Traffic light per well = worst CURRENT problem found by diagnostics (alarm / warning)."""
+    from . import diagnostics
+    pta_wells = {r["well_name"] for r in pta_service.events(ds)}
+    out = {w: {"status": "ok", "reasons": [], "has_pta": w in pta_wells} for w in ds.wells()}
+    rank = {"ok": 9, "alarm": 0, "warning": 1}
+    for it in diagnostics.analyse(ds)["issues"]:
+        if it["when"] != "now" or it["severity"] not in ("alarm", "warning") or it["well"] not in out:
+            continue
+        o = out[it["well"]]
+        o["reasons"].append({"key": f"pb_{it['type']}_t", "level": it["severity"], **it["evidence"]})
+        if rank[it["severity"]] < rank[o["status"]]:
+            o["status"] = it["severity"]
     return out
 
 
 def overview(ds):
+    from . import diagnostics
     s = store.shared()
     p = ds.preds.sort_values(["well_name", "date"])
     last = p.date.max()
@@ -68,10 +65,7 @@ def overview(ds):
         today = g[g.date == last].iloc[0]
         prod = g[g.shut_frac == 0]
         spark = prod[prod.date > last - pd.Timedelta(days=90)]
-        # decline = trend line through log(oil) of all producing days (robust to single noisy days)
-        x = (prod.date - prod.date.iloc[0]).dt.days.values
-        slope = np.polyfit(x, np.log(prod.oil_rate_stbd.clip(lower=1).values), 1)[0] if len(prod) > 10 else 0.0
-        decline = (np.exp(slope * 365) - 1) * 100
+        decline = diagnostics.decline_pct_yr(g)
         liq = today.oil_rate_stbd + today.water_rate_stbd
         r = pta_rows.get(w)
         wells.append({
@@ -88,7 +82,7 @@ def overview(ds):
     alerts = []
     for w in wells:
         for rs in w["reasons"]:
-            alerts.append({"level": w["status"], "well": w["well"], **rs})
+            alerts.append({"well": w["well"], **rs})
     for e in lift_gas_events(ds):
         alerts.append({"level": "warning", "well": None, "key": "ev_liftgas", **e})
     flags = p[(p.no_data) | (p.low_coverage & ~p.no_data)]

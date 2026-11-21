@@ -17,7 +17,9 @@
     } catch (e) { PN.toast(`${PN.t("error")}: ${e.message}`); }
   }
 
-  function kpi(id, v, auto, d, unit = "") {
+  const P = v => `${PN.fmt(PN.cv("p", v), ["bar", "MPa", "atm"].includes(PN.ul("p")) ? 1 : 0)}`;
+  function kpi(id, v, auto, d, unit = "", kind = null) {
+    if (kind) { v = PN.cv(kind, v); auto = PN.cv(kind, auto); }
     PN.countUp($(id), v, d, 450);
     const diff = auto != null && Math.abs(v - auto) > 1e-6;
     $(id + "-a").innerHTML = `<span class="dim">${PN.t("auto_val")}: ${PN.fmt(auto, d)}${unit}</span>` + (diff ? ` <span class="chip flat">${PN.signed((v / auto - 1) * 100, 1)}%</span>` : "");
@@ -26,10 +28,11 @@
   function render() {
     if (!cur) return;
     const r = cur.results, a = cur.auto_results, c = PN.colors;
-    kpi("r-m", r.horner_slope_psi_cycle, a.horner_slope_psi_cycle, 2);
+    kpi("r-m", r.horner_slope_psi_cycle, a.horner_slope_psi_cycle, 2, "", "dp");
+    $("r-m-u").textContent = `${PN.ul("dp")}/cycle`;
     kpi("r-k", r.permeability_md, a.permeability_md, 1);
     kpi("r-s", r.skin, a.skin, 2);
-    kpi("r-dps", r.dp_skin_psi, a.dp_skin_psi, 1);
+    kpi("r-dps", r.dp_skin_psi, a.dp_skin_psi, 1, "", "dp");
     $("mode-badge").className = "badge " + (cur.window_auto ? "accent" : "warning");
     $("mode-badge").textContent = cur.window_auto ? PN.t("automatic") : PN.t("manual");
     $("q-badge").className = "badge " + (cur.quality === "A" ? "ok" : "warning");
@@ -37,34 +40,35 @@
     $("w0").value = (+r.radial_window_start_hr).toFixed(2); $("w1").value = (+r.radial_window_end_hr).toFixed(2);
 
     $("extra").innerHTML = [
-      ["q_used", `${PN.fmt(r.q_oil_vfm_stbd, 0)} stb/d`], ["tp", `${PN.fmt(r.tp_hr, 0)} h`],
-      ["pwf", `${PN.fmt(r.pwf_psia, 0)} psia`], ["P1hr / P*", `${PN.fmt(r.p1hr_psia, 0)} / ${PN.fmt(r.p_star_gauge_psia, 0)} psia`],
-      ["pavg", `${PN.fmt(r.avg_reservoir_pressure_datum_psia, 0)} psia`], ["fe", PN.fmt(r.flow_efficiency, 2)],
-      ["flatness", `${PN.fmt(r.derivative_flatness_cv * 100, 1)} %`], ["rinv", `${PN.fmt(r.radius_investigation_ft, 0)} ft`],
-      ["storage", `≈ ${PN.fmt(r.wellbore_storage_bbl_psi, 3)} bbl/psi`],
+      ["q_used", `${PN.fmt(PN.cv("liq", r.q_oil_vfm_stbd), 0)} ${PN.ul("liq")}`], ["tp", `${PN.fmt(r.tp_hr, 0)} h`],
+      ["pwf", `${P(r.pwf_psia)} ${PN.ul("p")}`], ["P1hr / P*", `${P(r.p1hr_psia)} / ${P(r.p_star_gauge_psia)} ${PN.ul("p")}`],
+      ["pavg", `${P(r.avg_reservoir_pressure_datum_psia)} ${PN.ul("p")}`], ["fe", PN.fmt(r.flow_efficiency, 2)],
+      ["flatness", `${PN.fmt(r.derivative_flatness_cv * 100, 1)} %`], ["rinv", `${PN.fmt(PN.cv("len", r.radius_investigation_ft), 0)} ${PN.ul("len")}`],
+      ["storage", `≈ ${PN.fmt(r.wellbore_storage_bbl_psi / PN.cv("dp", 1), 3)} bbl/${PN.ul("dp")}`],
     ].map(([k, v]) => `<div class="k">${PN.t(k)}</div><div class="v">${v}</div>`).join("");
 
     $("interp").innerHTML = cur.interpretation.map(x => `<div>${PN.t(x.key, {
       skin: x.skin != null ? PN.signed(x.skin, 1) : "", fe: x.fe != null ? PN.fmt(x.fe * 100, 0) + "%" : "",
-      k: x.k != null ? PN.fmt(x.k, 0) : "", radius: x.radius != null ? PN.fmt(x.radius, 0) : "?", p: x.p != null ? PN.fmt(x.p, 0) : "" })}</div>`).join("");
+      k: x.k != null ? PN.fmt(x.k, 0) : "", radius: x.radius != null ? `${PN.fmt(PN.cv("len", x.radius), 0)} ${PN.ul("len")}` : "?",
+      p: x.p != null ? `${P(x.p)} ${PN.ul("p")}` : "" })}</div>`).join("");
 
     // 1 history: pressure + rate as used by the analysis
     const H = cur.history, shut = [{ start: cur.shut_in_start, end: cur.shut_in_end }];
     PN.plot($("c-hist"), [
-      { x: H.t, y: H.p, name: `${PN.t("dhp")} (psia)`, type: "scatter", mode: "lines", line: { color: c.dhp, width: 1.6 } },
-      { x: H.rate_t, y: H.rate_q, name: `${PN.t("oil")} VFM (stb/d)`, type: "scatter", mode: "lines", line: { color: c.oil, width: 2, shape: "hv" }, yaxis: "y2" },
-    ], { yaxis: { title: { text: "psia" } }, yaxis2: { overlaying: "y", side: "right", showgrid: false, rangemode: "tozero", title: { text: "stb/d" } },
+      { x: H.t, y: PN.cva("p", H.p), name: `${PN.t("dhp")} (${PN.ul("p")})`, type: "scatter", mode: "lines", line: { color: c.dhp, width: 1.6 } },
+      { x: H.rate_t, y: PN.cva("liq", H.rate_q), name: `${PN.t("oil")} VFM (${PN.ul("liq")})`, type: "scatter", mode: "lines", line: { color: c.oil, width: 2, shape: "hv" }, yaxis: "y2" },
+    ], { yaxis: { title: { text: PN.ul("p") } }, yaxis2: { overlaying: "y", side: "right", showgrid: false, rangemode: "tozero", title: { text: PN.ul("liq") } },
          shapes: PN.shade(shut, "rgba(224,138,0,0.12)"), margin: { r: 60 } });
 
     // 2 log-log with draggable window
     const L = cur.loglog, w0 = r.radial_window_start_hr, w1 = r.radial_window_end_hr;
     PN.plot($("c-loglog"), [
-      { x: L.dt, y: L.dp, name: PN.t("dp"), type: "scatter", mode: "markers", marker: { color: c.water, size: 5 } },
-      { x: L.dt, y: L.der, name: PN.t("deriv"), type: "scatter", mode: "markers", marker: { color: c.red, size: 5 } },
-    ], { xaxis: { type: "log", title: { text: "Δt, h" } }, yaxis: { type: "log", title: { text: "psi" } }, hovermode: "closest",
+      { x: L.dt, y: PN.cva("dp", L.dp), name: PN.t("dp"), type: "scatter", mode: "markers", marker: { color: c.water, size: 5 } },
+      { x: L.dt, y: PN.cva("dp", L.der), name: PN.t("deriv"), type: "scatter", mode: "markers", marker: { color: c.red, size: 5 } },
+    ], { xaxis: { type: "log", title: { text: "Δt, h" } }, yaxis: { type: "log", title: { text: PN.ul("dp") } }, hovermode: "closest",
          dragmode: "select", selectdirection: "h",
          shapes: [{ type: "rect", xref: "x", yref: "paper", x0: w0, x1: w1, y0: 0, y1: 1, fillcolor: "rgba(21,128,61,.09)", line: { color: "rgba(21,128,61,.5)", width: 1 } },
-                  { type: "line", xref: "paper", x0: 0, x1: 1, yref: "y", y0: r.horner_slope_psi_cycle / Math.LN10, y1: r.horner_slope_psi_cycle / Math.LN10, line: { color: c.ok, dash: "dash", width: 1 } }] },
+                  { type: "line", xref: "paper", x0: 0, x1: 1, yref: "y", y0: PN.cv("dp", r.horner_slope_psi_cycle) / Math.LN10, y1: PN.cv("dp", r.horner_slope_psi_cycle) / Math.LN10, line: { color: c.ok, dash: "dash", width: 1 } }] },
       { modeBarButtonsToAdd: ["select2d"] });
     $("c-loglog").removeAllListeners && $("c-loglog").removeAllListeners("plotly_selected");
     $("c-loglog").on("plotly_selected", ev => {
@@ -79,12 +83,12 @@
     // 3 Horner
     const Hn = cur.horner, inW = L.dt.map(t => t >= w0 && t <= w1);
     PN.plot($("c-horner"), [
-      { x: Hn.x, y: Hn.p, name: PN.t("data_pts"), type: "scatter", mode: "markers", marker: { color: c.muted, size: 5 } },
-      { x: Hn.x.filter((_, i) => inW[i]), y: Hn.p.filter((_, i) => inW[i]), name: PN.t("radial_pts"), type: "scatter", mode: "markers", marker: { color: c.ok, size: 6 } },
-      { x: Hn.fit_x, y: Hn.fit_p, name: `${PN.t("fit")} · m = ${PN.fmt(r.horner_slope_psi_cycle, 1)}`, type: "scatter", mode: "lines", line: { color: c.accent, dash: "dash", width: 2 } },
-      { x: [Hn.p1hr_x], y: [r.p1hr_psia], name: `P1hr = ${PN.fmt(r.p1hr_psia, 0)}`, type: "scatter", mode: "markers", marker: { symbol: "square", size: 11, color: c.warn } },
-      { x: [0], y: [r.p_star_gauge_psia], name: `P* = ${PN.fmt(r.p_star_gauge_psia, 0)}`, type: "scatter", mode: "markers", marker: { symbol: "star", size: 15, color: c.ink } },
-    ], { xaxis: { autorange: "reversed", title: { text: "log10[(tp + Δt) / Δt]" } }, yaxis: { title: { text: "psia" } }, hovermode: "closest" });
+      { x: Hn.x, y: PN.cva("p", Hn.p), name: PN.t("data_pts"), type: "scatter", mode: "markers", marker: { color: c.muted, size: 5 } },
+      { x: Hn.x.filter((_, i) => inW[i]), y: PN.cva("p", Hn.p.filter((_, i) => inW[i])), name: PN.t("radial_pts"), type: "scatter", mode: "markers", marker: { color: c.ok, size: 6 } },
+      { x: Hn.fit_x, y: PN.cva("p", Hn.fit_p), name: `${PN.t("fit")} · m = ${PN.fmt(PN.cv("dp", r.horner_slope_psi_cycle), 1)} ${PN.ul("dp")}`, type: "scatter", mode: "lines", line: { color: c.accent, dash: "dash", width: 2 } },
+      { x: [Hn.p1hr_x], y: [PN.cv("p", r.p1hr_psia)], name: `P1hr = ${P(r.p1hr_psia)}`, type: "scatter", mode: "markers", marker: { symbol: "square", size: 11, color: c.warn } },
+      { x: [0], y: [PN.cv("p", r.p_star_gauge_psia)], name: `P* = ${P(r.p_star_gauge_psia)}`, type: "scatter", mode: "markers", marker: { symbol: "star", size: 15, color: c.ink } },
+    ], { xaxis: { autorange: "reversed", title: { text: "log10[(tp + Δt) / Δt]" } }, yaxis: { title: { text: PN.ul("p") } }, hovermode: "closest" });
   }
 
   PN.start({

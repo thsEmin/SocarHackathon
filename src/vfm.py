@@ -17,6 +17,7 @@ Why not the first model (v1, unconstrained)? It scored 2.6 % on tests, but it le
 day). In the 14-Jun-2025 field-wide lift-gas outage it predicted oil going UP by 10-68 %.
 """
 import json
+import pickle
 import sys
 import warnings
 import numpy as np
@@ -366,6 +367,9 @@ def main():
 
     model = RatioVFM().fit(t, dd)
     joblib.dump(model, W / "vfm_model.joblib")
+    OUT.mkdir(exist_ok=True)
+    with open(OUT / "vfm_model.pkl", "wb") as f:   # deliverable: model in .pkl format
+        pickle.dump(model, f)
     diag = physics_diagnostics(t, hf, d, dd, model)
     diag["oil_coefficients_per_std"] = dict(zip(model.oil.feats, np.round(model.oil.coef[:len(model.oil.feats)], 4)))
     (W / "vfm_diagnostics.json").write_text(json.dumps(diag, indent=2, default=float))
