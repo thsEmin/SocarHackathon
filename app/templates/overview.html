@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="row cols-6" id="kpis">
+  <div class="card kpi oil"><div class="label"><span class="swatch" style="background:var(--oil)"></span><span data-i18n="k_field_oil"></span></div><div class="value"><span id="k-oil">—</span><span class="unit" data-i18n="stbd"></span></div><div class="foot" id="k-oil-f"></div></div>
+  <div class="card kpi water"><div class="label"><span class="swatch" style="background:var(--water)"></span><span data-i18n="k_field_water"></span></div><div class="value"><span id="k-water">—</span><span class="unit" data-i18n="stbd"></span></div><div class="foot" id="k-water-f"></div></div>
+  <div class="card kpi gas"><div class="label"><span class="swatch" style="background:var(--gas)"></span><span data-i18n="k_field_gas"></span></div><div class="value"><span id="k-gas">—</span><span class="unit" data-i18n="mscfd"></span></div><div class="foot" id="k-gas-f"></div></div>
+  <div class="card kpi acc"><div class="label" data-i18n="k_wc"></div><div class="value"><span id="k-wc">—</span><span class="unit">%</span></div><div class="foot" id="k-wc-f"></div></div>
+  <div class="card kpi acc"><div class="label" data-i18n="k_online"></div><div class="value"><span id="k-online">—</span></div><div class="foot" id="k-online-f"></div></div>
+  <div class="card kpi oil"><div class="label" data-i18n="k_cum"></div><div class="value"><span id="k-cum">—</span><span class="unit">Mstb</span></div><div class="foot" id="k-cum-f"></div></div>
+</section>
+
+<section class="row main-rail">
+  <div class="card">
+    <div class="card-h"><h3 data-i18n="schematic"></h3><span class="sub" data-i18n="schematic_sub"></span>
+      <div class="right"><span class="badge ok"><span class="dot ok"></span><span data-i18n="lg_ok"></span></span><span class="badge warning"><span class="dot warning"></span><span data-i18n="lg_warn"></span></span><span class="badge alarm"><span class="dot alarm"></span><span data-i18n="lg_alarm"></span></span></div></div>
+    <div class="schematic" id="schematic"><div class="skel" style="min-height:330px"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3 data-i18n="alerts"></h3></div>
+    <div class="sub dim" style="font-size:12px;margin:-6px 0 12px" data-i18n="alerts_sub"></div>
+    <div class="alerts" id="alerts"><div class="skel"></div></div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-h"><h3 data-i18n="field_prod"></h3><span class="sub" data-i18n="field_prod_sub"></span></div>
+  <div class="chart" id="field-chart"></div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/pages/overview.js') }}"></script>{% endblock %}

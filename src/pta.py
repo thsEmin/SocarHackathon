@@ -351,10 +351,22 @@ def main():
         plot(inp, res, cur, OUT / "pta_plots" / f"{res.well_name}_{res.shut_in_start:%Y%m%d_%H%M}.png")
 
     r.to_csv(W / "pta_estimates.csv", index=False)
+    write_excel(r, OUT / "PTA_results.xlsx")
+    pd.set_option("display.width", 220)
+    print(r[["well_name", "shut_in_start", "duration_hr", "horner_slope_psi_cycle", "permeability_md", "skin",
+             "dp_skin_psi", "q_oil_vfm_stbd", "radial_window_start_hr", "radial_window_end_hr",
+             "derivative_flatness_cv", "m_from_derivative", "quality", "late_time_behaviour"]].round(2).to_string(index=False))
+    print("\nsensitivity (k, mD):")
+    print(r[["well_name", "permeability_md", "k_md_if_tp_since_choke_change", "k_md_window_shift_min",
+             "k_md_window_shift_max"]].round(1).to_string(index=False))
+
+
+def write_excel(r, path):
+    """PTA deliverable. `path` may be a file path or a file-like object (the app writes to memory)."""
     req = r[["well_name", "shut_in_start", "duration_hr", "horner_slope_psi_cycle",
              "permeability_md", "skin", "dp_skin_psi"]].round(3)
     detail = r.drop(columns=["window_auto"]).round(4)
-    with pd.ExcelWriter(OUT / "PTA_results.xlsx", engine="openpyxl") as xw:
+    with pd.ExcelWriter(path, engine="openpyxl") as xw:
         req.to_excel(xw, sheet_name="results", index=False)
         detail.to_excel(xw, sheet_name="details", index=False)
         r[["well_name", "shut_in_start", "permeability_md", "k_md_if_tp_since_choke_change",
@@ -371,13 +383,6 @@ def main():
                                  "dP_skin = 0.869 m S",
                                  "single-phase oil valid: Pwf above bubble point in every test"]}
                      ).to_excel(xw, sheet_name="method", index=False)
-    pd.set_option("display.width", 220)
-    print(r[["well_name", "shut_in_start", "duration_hr", "horner_slope_psi_cycle", "permeability_md", "skin",
-             "dp_skin_psi", "q_oil_vfm_stbd", "radial_window_start_hr", "radial_window_end_hr",
-             "derivative_flatness_cv", "m_from_derivative", "quality", "late_time_behaviour"]].round(2).to_string(index=False))
-    print("\nsensitivity (k, mD):")
-    print(r[["well_name", "permeability_md", "k_md_if_tp_since_choke_change", "k_md_window_shift_min",
-             "k_md_window_shift_max"]].round(1).to_string(index=False))
 
 
 if __name__ == "__main__":

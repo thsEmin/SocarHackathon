@@ -1,6 +1,9 @@
 # local tool settings
 .claude/
 
+# datasets uploaded through the app at run time
+uploads/
+
 # Python
 __pycache__/
 *.pyc

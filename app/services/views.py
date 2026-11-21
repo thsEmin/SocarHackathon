@@ -1,0 +1,102 @@
+"""JSON payloads for the Sensors, VFM, Well and Export pages."""
+import io
+import zipfile
+
+import numpy as np
+import pandas as pd
+
+from . import store, pta_service
+
+T = ["oil_rate_stbd", "water_rate_stbd", "gas_rate_mscfd"]
+
+
+def _r(a, n=2):
+    return [None if (v is None or (isinstance(v, float) and not np.isfinite(v))) else round(float(v), n) for v in a]
+
+
+def sensors(ds, well, step="15min"):
+    h = ds.hf[ds.hf.well_name == well].set_index("timestamp")
+    cols = store.SENSORS + ["choke_opening_pct"]
+    g = h[cols].resample(step).mean()
+    g = g[g.notna().any(axis=1)]
+    shut = ds.shut[ds.shut.well_name == well]
+    tests = store.shared()["tests"]
+    tw = tests[(tests.well_name == well) & (tests.test_start >= h.index.min()) & (tests.test_end <= h.index.max())]
+    return {"well": well, "t": [x.isoformat() for x in g.index], **{c: _r(g[c].values) for c in cols},
+            "shut_ins": [{"start": a.isoformat(), "end": b.isoformat()} for a, b in zip(shut.shut_start, shut.shut_end)],
+            "tests": [{"start": a.isoformat(), "end": b.isoformat()} for a, b in zip(tw.test_start, tw.test_end)]}
+
+
+def vfm(ds, well):
+    s = store.shared()
+    p = ds.preds[ds.preds.well_name == well].sort_values("date")
+    tests = s["tests"]
+    tw = tests[(tests.well_name == well) & (tests.test_start >= p.date.min()) &
+               (tests.test_start <= p.date.max() + pd.Timedelta(days=1))]
+    mid = tw.test_start + (tw.test_end - tw.test_start) / 2
+    v = s["validation"]
+    piv = v.pivot_table(index=["split", "model"], columns="target", values="MAPE_%", sort=False).reset_index()
+    d = s["diag"]
+    return {"well": well, "t": [str(x.date()) for x in p.date], **{k: _r(p[k].values, 1) for k in T},
+            "flags": [("shut" if sf == 1 else "partial" if sf > 0 else "nodata" if nd else "low" if lc else "")
+                      for sf, nd, lc in zip(p.shut_frac.fillna(0), p.no_data, p.low_coverage)],
+            "tests": {"t": [x.isoformat() for x in mid], **{k: _r(tw[k].values, 1) for k in T}},
+            "validation": piv.round(2).to_dict(orient="records"),
+            "diag": {"lambda": d["lambda_learned_from_tests"],
+                     "liftcut_v1": d["liftcut_oil_change_pct_v1"], "liftcut_v2": d["liftcut_oil_change_pct_v2"],
+                     "normal_v1": d["normal_days_vs_test_pct_v1"], "normal_v2": d["normal_days_vs_test_pct_v2"]},
+            "period": {k: float(p[k].sum()) for k in T}}
+
+
+def well_info(ds, well):
+    s = store.shared()
+    comp = s["comp"].loc[well].to_dict() if well in s["comp"].index else {}
+    pvt = s["pvt"].loc[well].to_dict() if well in s["pvt"].index else {}
+    ev = [r for r in pta_service.events(ds) if r["well_name"] == well]
+    p = ds.preds[(ds.preds.well_name == well)].sort_values("date")
+    today = p.iloc[-1]
+    dly = ds.daily[(ds.daily.well_name == well) & (ds.daily.shut_frac == 0)].sort_values("date").tail(7)
+    clean = lambda dct: {k: (v.item() if hasattr(v, "item") else v) for k, v in dct.items()}
+    return {"well": well, "completion": clean(comp), "pvt": clean(pvt), "pta": ev[-1] if ev else None,
+            "today": {"date": str(today.date.date()), **{k: float(today[k]) for k in T}},
+            "sensors_7d": {c: float(dly[c].mean()) for c in store.SENSORS + ["choke_opening_pct"]},
+            "drawdown": float(s["drawdown"].drawdown_psi.get(well, np.nan))}
+
+
+# ------------------------------------------------------------------ exports
+def export_vfm_xlsx(ds):
+    s = store.shared()
+    piv = s["validation"].pivot_table(index=["split", "model"], columns="target", values="MAPE_%",
+                                      sort=False).round(2)
+    piv["mean"] = piv.mean(axis=1).round(2)
+    buf = io.BytesIO()
+    store.vfm.export_excel(ds.preds, piv, s["diag"], s["drawdown"], path=buf)
+    return buf.getvalue()
+
+
+def _pta_table(ds):
+    inp = ds.pta_inputs()
+    r, curves = store.pta.run_all(inp)
+    return inp, r, curves
+
+
+def export_pta_xlsx(ds):
+    if not len(ds.shut):
+        raise ValueError("this dataset has no shut-ins")
+    _, r, _ = _pta_table(ds)
+    buf = io.BytesIO()
+    store.pta.write_excel(r, buf)
+    return buf.getvalue()
+
+
+def export_plots_zip(ds):
+    if not len(ds.shut):
+        raise ValueError("this dataset has no shut-ins")
+    inp, r, curves = _pta_table(ds)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for _, res in r.iterrows():
+            img = io.BytesIO()
+            store.pta.plot(inp, res, curves[(res.well_name, res.shut_in_start)], img)
+            z.writestr(f"{res.well_name}_{res.shut_in_start:%Y%m%d_%H%M}.png", img.getvalue())
+    return buf.getvalue()

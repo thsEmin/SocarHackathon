@@ -380,9 +380,11 @@ def main():
     export_excel(p, piv, diag, dd)
 
 
-def export_excel(p, piv, diag, dd):
-    """Deliverable: sheet 1 has exactly the columns the README asks for."""
+def export_excel(p, piv, diag, dd, path=None):
+    """Deliverable: sheet 1 has exactly the columns the README asks for.
+    `path` may be a file path or a file-like object (the app writes to memory)."""
     OUT.mkdir(exist_ok=True)
+    path = OUT / "VFM_daily_predictions.xlsx" if path is None else path
     main_sheet = p[["date", "well_name"] + TARGETS].copy()
     main_sheet["date"] = main_sheet.date.dt.date
     main_sheet[TARGETS] = main_sheet[TARGETS].round(1)
@@ -400,13 +402,14 @@ def export_excel(p, piv, diag, dd):
     for w in sorted(diag["liftcut_oil_change_pct_v2"]):
         diag_rows.append((f"14-Jun lift-gas outage, oil change {w}: v1 / v2 FINAL (%)",
                           f"{diag['liftcut_oil_change_pct_v1'][w]:+.1f} / {diag['liftcut_oil_change_pct_v2'][w]:+.1f}"))
-    with pd.ExcelWriter(OUT / "VFM_daily_predictions.xlsx", engine="openpyxl") as xw:
+    with pd.ExcelWriter(path, engine="openpyxl") as xw:
         main_sheet.to_excel(xw, sheet_name="predictions", index=False)
         flags.round(3).to_excel(xw, sheet_name="day_flags", index=False)
         piv.reset_index().to_excel(xw, sheet_name="validation_MAPE_pct", index=False)
         pd.DataFrame(diag_rows, columns=["physics check", "value"]).to_excel(xw, sheet_name="physics_checks", index=False)
         dd.round(1).to_excel(xw, sheet_name="drawdown_used")
-    print("wrote", OUT / "VFM_daily_predictions.xlsx")
+    if not hasattr(path, "write"):
+        print("wrote", path)
 
 
 if __name__ == "__main__":

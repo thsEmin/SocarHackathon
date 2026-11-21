@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PetroNova · {{ page|capitalize }}</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/petronova.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  {% block head %}{% endblock %}
+</head>
+{% set group = 'nav_monitor' if page in ['overview', 'data', 'sensors'] else ('nav_deliver' if page == 'export' else 'nav_analyse') %}
+<body data-page="{{ page }}">
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <a class="brand" href="/" aria-label="SOCAR · PetroNova home">
+      <img class="brand-logo" src="{{ url_for('static', filename='img/socar-logo.webp') }}" alt="SOCAR">
+      <span class="brand-sep" aria-hidden="true"></span>
+      <span class="brand-name">PetroNova</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="/" data-page="home"><span data-i18n="n_home"></span></a>
+      <a href="/overview" data-page="overview"><span data-i18n="n_overview"></span></a>
+      <a href="/data" data-page="data"><span data-i18n="n_data"></span></a>
+      <a href="/sensors" data-page="sensors"><span data-i18n="n_sensors"></span></a>
+      <a href="/vfm" data-page="vfm"><span data-i18n="n_vfm"></span></a>
+      <a href="/whatif" data-page="whatif"><span data-i18n="n_whatif"></span></a>
+      <a href="/pta" data-page="pta"><span data-i18n="n_pta"></span></a>
+      <a href="/well" data-page="well"><span data-i18n="n_well"></span></a>
+      <a href="/export" data-page="export"><span data-i18n="n_export"></span></a>
+    </nav>
+    <div class="topbar-right">
+      <div class="seg" id="lang" aria-label="Language"><button data-lang="en">EN</button><button data-lang="az">AZ</button></div>
+    </div>
+  </div>
+</header>
+
+{% block hero %}
+<section class="hero">
+  <div class="wrap hero-in">
+    <div>
+      <div class="eyebrow br" data-i18n="{{ group }}"></div>
+      <h1 class="page-title" data-i18n="p_{{ page }}"></h1>
+      <p class="page-sub" data-i18n="s_{{ page }}"></p>
+    </div>
+    <div class="hero-ctl">
+      <div class="ctl ctl-period"><span class="live-dot"></span><span class="mono" id="ds-period"></span></div>
+      <label class="ctl"><span data-i18n="dataset"></span><select id="ds-select"></select></label>
+      <label class="ctl" {% if page in ['overview', 'data', 'export'] %}style="display:none"{% endif %}><span data-i18n="well"></span><select id="well-select"></select></label>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block main %}
+<main class="content wrap">
+  {% block content %}{% endblock %}
+</main>
+{% endblock %}
+
+<footer class="footer">
+  <div class="wrap footer-in">
+    <span><b>PetroNova</b> &nbsp;v1.0 · <span data-i18n="footer_model"></span></span>
+    <span data-i18n="footer_built"></span>
+  </div>
+</footer>
+<script src="{{ url_for('static', filename='vendor/plotly.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+<script src="{{ url_for('static', filename='js/core.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

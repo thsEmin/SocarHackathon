@@ -1,0 +1,63 @@
+/* PetroNova design tokens: engineering-blueprint theme (white canvas, ink bands, signal orange) */
+@font-face { font-family: "Inter"; font-weight: 400; font-display: swap; src: url(../vendor/fonts/inter-latin-400.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; font-weight: 400; font-display: swap; src: url(../vendor/fonts/inter-latin-ext-400.woff2) format("woff2"); unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Inter"; font-weight: 500; font-display: swap; src: url(../vendor/fonts/inter-latin-500.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+2000-206F, U+2212; }
+@font-face { font-family: "Inter"; font-weight: 500; font-display: swap; src: url(../vendor/fonts/inter-latin-ext-500.woff2) format("woff2"); unicode-range: U+0100-02AF, U+1E00-1EFF; }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: swap; src: url(../vendor/fonts/inter-latin-600.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+2000-206F, U+2212; }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: swap; src: url(../vendor/fonts/inter-latin-ext-600.woff2) format("woff2"); unicode-range: U+0100-02AF, U+1E00-1EFF; }
+@font-face { font-family: "Inter"; font-weight: 700; font-display: swap; src: url(../vendor/fonts/inter-latin-700.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+2000-206F, U+2212; }
+@font-face { font-family: "Inter"; font-weight: 700; font-display: swap; src: url(../vendor/fonts/inter-latin-ext-700.woff2) format("woff2"); unicode-range: U+0100-02AF, U+1E00-1EFF; }
+@font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; src: url(../vendor/fonts/jbmono-latin-400.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+2212; }
+@font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; src: url(../vendor/fonts/jbmono-latin-ext-400.woff2) format("woff2"); unicode-range: U+0100-02AF; }
+@font-face { font-family: "JetBrains Mono"; font-weight: 600; font-display: swap; src: url(../vendor/fonts/jbmono-latin-600.woff2) format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+2212; }
+@font-face { font-family: "JetBrains Mono"; font-weight: 600; font-display: swap; src: url(../vendor/fonts/jbmono-latin-ext-600.woff2) format("woff2"); unicode-range: U+0100-02AF; }
+
+:root {
+  /* surfaces */
+  --bg: #FFFFFF;          /* main canvas: white */
+  --bg-raised: #F4F5F6;   /* inner panels, tiles */
+  --card: #FFFFFF;
+  --card-hover: #FAFAFB;
+  --line: #E2E3E6;        /* hairline grid */
+  --line-strong: #C3C4C8;
+  --ink: #18191B;         /* dark bands: hero, footer */
+  --ink-2: #232427;
+  --ink-line: #2F3032;
+  --caspian: #18191B;
+
+  /* text */
+  --text: #0C0C0C;
+  --text-2: #47484B;
+  --text-3: #74767A;      /* ≥4.5:1 on white */
+  --on-ink: #EFF0F1;
+  --on-ink-2: #A3A5AA;
+
+  /* signal orange: markers, primary action, active state */
+  --accent: #FE5B2A;
+  --accent-ink: #D8410F;  /* orange text on white (AA) */
+  --accent-soft: rgba(254, 91, 42, 0.09);
+  --accent-line: rgba(254, 91, 42, 0.55);
+
+  /* status (meaning only) */
+  --ok: #15803D;
+  --warn: #B45309;
+  --alarm: #C81E1E;
+  --info: #64748B;
+
+  /* phases: industry convention, tuned for white */
+  --oil: #15965A;
+  --gas: #D33A3A;
+  --water: #2563EB;
+
+  /* type */
+  --font: "Inter", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* shape: square blueprint */
+  --r: 0px;
+  --r-sm: 4px;            /* buttons, inputs */
+  --gap: 20px;
+  --header: 64px;
+  --maxw: 1520px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}

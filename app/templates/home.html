@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">{% endblock %}
+
+{% block hero %}
+<div class="scroll-bar" id="scroll-bar"></div>
+
+<!-- 1 · intro -->
+<section class="h-hero">
+  <canvas class="h-hero-bg" id="hero-canvas" aria-hidden="true"></canvas>
+  <div class="wrap h-hero-in">
+    <div class="eyebrow br on-ink" data-i18n="h_eyebrow"></div>
+    <h1 class="h-title">
+      <span class="line"><span data-i18n="h_t1"></span></span>
+      <span class="line"><span class="mark" data-i18n="h_t2"></span></span>
+    </h1>
+    <p class="h-lead" data-i18n="h_lead"></p>
+    <div class="h-cta">
+      <a class="btn primary" href="/overview"><span class="arr">↳</span><span data-i18n="h_cta_open"></span></a>
+      <a class="btn light" href="#story"><span data-i18n="h_cta_how"></span><span class="arr">↓</span></a>
+    </div>
+  </div>
+  <div class="wrap h-facts">
+    <div class="fact"><div class="v" id="f-wells">10</div><div class="l" data-i18n="h_f_wells"></div></div>
+    <div class="fact"><div class="v" id="f-days">273</div><div class="l" data-i18n="h_f_days"></div></div>
+    <div class="fact"><div class="v" id="f-shut">—</div><div class="l" data-i18n="h_f_shut"></div></div>
+    <div class="fact"><div class="v">57</div><div class="l" data-i18n="h_f_checks"></div></div>
+  </div>
+  <div class="h-scroll-hint" aria-hidden="true"><span data-i18n="h_scroll"></span><i></i></div>
+</section>
+{% endblock %}
+
+{% block main %}
+<!-- 2 · how it works: sticky scroll story -->
+<section class="story" id="story">
+  <div class="wrap story-head reveal">
+    <div class="eyebrow br" data-i18n="h_how_eyebrow"></div>
+    <h2 class="h2" data-i18n="h_how_title"></h2>
+  </div>
+  <div class="wrap story-grid">
+    <div class="story-steps">
+      {% for i in range(1, 6) %}
+      <article class="step" data-step="{{ i - 1 }}">
+        <div class="step-num">0{{ i }} <span>/ 05</span></div>
+        <div class="eyebrow" data-i18n="h_s{{ i }}_tag"></div>
+        <h3 data-i18n="h_s{{ i }}_title"></h3>
+        <p data-i18n="h_s{{ i }}_text"></p>
+      </article>
+      {% endfor %}
+    </div>
+    <div class="story-stage">
+      <div class="stage">
+        <canvas id="story-canvas" aria-label="Animated explanation of the PetroNova workflow"></canvas>
+        <div class="stage-cap"><span class="sq"></span><span id="stage-cap"></span></div>
+        <div class="stage-ticks" id="stage-ticks"><i></i><i></i><i></i><i></i><i></i></div>
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · two engines -->
+<section class="engines">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow br" data-i18n="h_core_eyebrow"></div>
+      <h2 class="h2" data-i18n="h_core_title"></h2>
+    </div>
+    <div class="engine-grid">
+      <article class="engine reveal">
+        <div class="engine-art"><svg viewBox="0 0 200 120" class="art-vfm" aria-hidden="true">
+          <path class="in" d="M0 30 C60 30 70 60 100 60"/><path class="in" d="M0 60 L100 60"/><path class="in" d="M0 90 C60 90 70 60 100 60"/>
+          <rect x="88" y="48" width="24" height="24" class="node"/>
+          <path class="out oil" d="M112 60 C140 60 150 28 200 28"/><path class="out water" d="M112 60 L200 60"/><path class="out gas" d="M112 60 C140 60 150 92 200 92"/>
+        </svg></div>
+        <div class="engine-body">
+          <div class="eyebrow" data-i18n="h_vfm_tag"></div>
+          <h3 data-i18n="p_vfm"></h3>
+          <p class="q" data-i18n="h_vfm_q"></p>
+          <p data-i18n="h_vfm_text"></p>
+          <dl class="io"><dt data-i18n="h_in"></dt><dd data-i18n="h_vfm_in"></dd><dt data-i18n="h_out"></dt><dd data-i18n="h_vfm_out"></dd></dl>
+          <a class="link-arrow" href="/vfm"><span data-i18n="h_open"></span> →</a>
+        </div>
+      </article>
+      <article class="engine reveal">
+        <div class="engine-art"><svg viewBox="0 0 200 120" class="art-pta" aria-hidden="true">
+          <path class="axis" d="M14 8 V108 H196"/>
+          <path class="dp" d="M20 100 C50 70 70 40 110 30 S170 24 192 22"/>
+          <path class="der" d="M20 104 C45 70 60 40 80 46 S100 66 120 66 L192 66"/>
+          <rect x="112" y="10" width="54" height="96" class="win"/>
+        </svg></div>
+        <div class="engine-body">
+          <div class="eyebrow" data-i18n="h_pta_tag"></div>
+          <h3 data-i18n="p_pta"></h3>
+          <p class="q" data-i18n="h_pta_q"></p>
+          <p data-i18n="h_pta_text"></p>
+          <dl class="io"><dt data-i18n="h_in"></dt><dd data-i18n="h_pta_in"></dd><dt data-i18n="h_out"></dt><dd data-i18n="h_pta_out"></dd></dl>
+          <a class="link-arrow" href="/pta"><span data-i18n="h_open"></span> →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · live numbers -->
+<section class="numbers">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow br on-ink" data-i18n="h_num_eyebrow"></div>
+      <h2 class="h2" data-i18n="h_num_title"></h2>
+    </div>
+    <div class="num-grid">
+      <div class="num reveal"><div class="tag"><span class="sq" style="background:var(--oil)"></span><span data-i18n="k_field_oil"></span></div><div class="big"><span data-count id="n-oil">—</span><small data-i18n="stbd"></small></div></div>
+      <div class="num reveal"><div class="tag"><span class="sq"></span><span data-i18n="k_cum"></span></div><div class="big"><span data-count id="n-cum">—</span><small>Mstb</small></div></div>
+      <div class="num reveal"><div class="tag"><span class="sq"></span><span data-i18n="h_n_flag"></span></div><div class="big"><span data-count id="n-flag">—</span><small data-i18n="h_n_wells"></small></div></div>
+      <div class="num reveal"><div class="tag"><span class="sq"></span><span data-i18n="h_n_perm"></span></div><div class="big"><span data-count id="n-perm">—</span><small>mD</small></div></div>
+    </div>
+    <p class="num-note reveal" data-i18n="h_num_note"></p>
+  </div>
+</section>
+
+<!-- 5 · modules -->
+<section class="modules">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow br" data-i18n="h_mod_eyebrow"></div>
+      <h2 class="h2" data-i18n="h_mod_title"></h2>
+    </div>
+    <div class="mod-grid">
+      {% for p in ['overview', 'data', 'sensors', 'vfm', 'whatif', 'pta', 'well', 'export'] %}
+      <a class="mod reveal" href="/{{ p }}">
+        <span class="mod-n">0{{ loop.index }}</span>
+        <span class="mod-ic" data-icon="{{ p }}"></span>
+        <span class="mod-t" data-i18n="p_{{ p }}"></span>
+        <span class="mod-s" data-i18n="s_{{ p }}"></span>
+        <span class="mod-go">→</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- 6 · call to action -->
+<section class="cta">
+  <div class="wrap cta-in reveal">
+    <h2 class="h2" data-i18n="h_cta_title"></h2>
+    <a class="btn ink" href="/overview"><span class="arr">↳</span><span data-i18n="h_cta_open"></span></a>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}<script src="{{ url_for('static', filename='js/pages/home.js') }}"></script>{% endblock %}

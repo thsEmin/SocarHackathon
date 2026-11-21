@@ -6,10 +6,11 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-STEPS = [("1/4 clean data", "src/prep.py"),
-         ("2/4 VFM model + daily predictions", "src/vfm.py"),
-         ("3/4 PTA on every shut-in", "src/pta.py"),
-         ("4/4 automatic checks", "src/check_data.py")]
+STEPS = [("1/5 clean data", "src/prep.py"),
+         ("2/5 VFM model + daily predictions", "src/vfm.py"),
+         ("3/5 PTA on every shut-in", "src/pta.py"),
+         ("4/5 automatic data / VFM / PTA checks", "src/check_data.py"),
+         ("5/5 automatic web-app checks", "src/check_app.py")]
 
 for name, script in STEPS:
     t = time.time()

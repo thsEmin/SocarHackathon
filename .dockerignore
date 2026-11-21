@@ -1,0 +1,10 @@
+# not needed at run time (the app uses work/hf_clean.parquet)
+Dataset/high_freq_data.csv
+.git
+.claude
+uploads
+__pycache__
+*.pyc
+outputs
+Hackathon2026 README.docx
+SOCAR_Hackathon_2026_Challenge.html

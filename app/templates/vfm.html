@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="row cols-4">
+  <div class="card kpi oil"><div class="label"><span class="swatch" style="background:var(--oil)"></span><span data-i18n="oil"></span> · <span data-i18n="period_total"></span></div><div class="value"><span id="t-oil">—</span><span class="unit">Mstb</span></div><div class="foot" id="t-oil-f"></div></div>
+  <div class="card kpi water"><div class="label"><span class="swatch" style="background:var(--water)"></span><span data-i18n="water"></span> · <span data-i18n="period_total"></span></div><div class="value"><span id="t-water">—</span><span class="unit">Mstb</span></div><div class="foot" id="t-water-f"></div></div>
+  <div class="card kpi gas"><div class="label"><span class="swatch" style="background:var(--gas)"></span><span data-i18n="gas"></span> · <span data-i18n="period_total"></span></div><div class="value"><span id="t-gas">—</span><span class="unit">MMscf</span></div><div class="foot" id="t-gas-f"></div></div>
+  <div class="card kpi acc"><div class="label" data-i18n="lambda_txt"></div><div class="value"><span id="lam">—</span></div><div class="foot dim" data-i18n="lambda_note"></div></div>
+</section>
+
+<section class="card">
+  <div class="card-h"><h3 id="v-title"></h3><span class="sub" data-i18n="vfm_chart_sub"></span></div>
+  <div class="chart" id="vfm-chart" style="height:420px"></div>
+</section>
+
+<section class="row cols-2">
+  <div class="card">
+    <div class="card-h"><h3 data-i18n="validation"></h3><span class="sub" data-i18n="validation_sub"></span></div>
+    <table class="t" id="val-table"></table>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3 data-i18n="physics"></h3><span class="sub" data-i18n="physics_sub"></span></div>
+    <div class="eyebrow" data-i18n="liftcut"></div>
+    <div class="chart short" id="liftcut-chart"></div>
+    <div class="kv" style="margin-top:8px" id="normal-kv"></div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/pages/vfm.js') }}"></script>{% endblock %}

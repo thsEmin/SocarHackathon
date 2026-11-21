@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="row" style="grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr)">
+  <div class="card wellbore">
+    <div class="card-h"><h3 data-i18n="wellbore"></h3><span class="sub" data-i18n="wellbore_sub"></span></div>
+    <div id="wb"><div class="skel" style="height:640px"></div></div>
+  </div>
+  <div class="row" style="gap:var(--gap);align-content:start">
+    <div class="row cols-3">
+      <div class="card kpi oil"><div class="label" data-i18n="oil"></div><div class="value"><span id="w-oil">—</span><span class="unit" data-i18n="stbd"></span></div></div>
+      <div class="card kpi water"><div class="label" data-i18n="water"></div><div class="value"><span id="w-water">—</span><span class="unit" data-i18n="stbd"></span></div></div>
+      <div class="card kpi gas"><div class="label" data-i18n="gas"></div><div class="value"><span id="w-gas">—</span><span class="unit" data-i18n="mscfd"></span></div></div>
+    </div>
+    <div class="card"><div class="card-h"><h3 data-i18n="p_pta"></h3><div class="right"><a class="btn ghost" href="/pta" data-icon="arrow"><span>PTA</span></a></div></div><div id="w-pta"></div></div>
+    <div class="row cols-2">
+      <div class="card"><div class="card-h"><h3 data-i18n="completion"></h3></div><div class="kv" id="w-comp"></div></div>
+      <div class="card"><div class="card-h"><h3 data-i18n="reservoir"></h3></div><div class="kv" id="w-pvt"></div></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/pages/well.js') }}"></script>{% endblock %}

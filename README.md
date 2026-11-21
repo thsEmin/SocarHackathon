@@ -12,14 +12,35 @@ cd SocarHackathon
 git lfs pull
 ```
 
-## Run everything (about 2 minutes)
+## Open the app (PetroNova)
 
 ```
 pip install -r requirements.txt
+python run_app.py
+```
+
+The app opens at **http://127.0.0.1:5000** and works offline (charts and fonts are bundled). Its pages:
+
+- **Field overview:** field schematic, KPIs and alerts
+- **Data:** upload and cleaning report
+- **Sensors**
+- **Virtual flow meter**
+- **What-if scenarios:** choke and lift-gas sliders
+- **Pressure transient analysis:** the 4 plots, plus a manual window you can drag
+- **Well profile:** wellbore diagram
+- **Export:** VFM Excel, PTA Excel and the plots
+
+Use the EN / AZ switch at the top right to change language.
+
+To host it online, use the `Dockerfile` (`docker build -t petronova .` then `docker run -p 8000:8000 petronova`).
+
+## Rebuild everything (about 3 minutes)
+
+```
 python run_all.py
 ```
 
-`run_all.py` runs the four steps in order and stops at the first failure:
+`run_all.py` runs the five steps in order and stops at the first failure:
 
 | Step | Script | What it does |
 |---|---|---|
@@ -27,6 +48,7 @@ python run_all.py
 | 2 | `src/vfm.py` | Trains and validates the VFM, then writes the daily oil, water and gas predictions |
 | 3 | `src/pta.py` | Runs a build-up analysis on every shut-in, with plots and results |
 | 4 | `src/check_data.py` | Runs 57 automatic checks on data, VFM and PTA |
+| 5 | `src/check_app.py` | Runs 12 automatic checks on the web app (pages, API, numbers, upload, exports) |
 
 The raw files in `Dataset/` are never modified.
 
@@ -42,6 +64,7 @@ The raw files in `Dataset/` are never modified.
 
 - `Dataset/`: raw data (read only)
 - `src/`: pipeline code
+- `app/`: PetroNova web app (Flask server, services, pages, design system)
 - `work/`: intermediate tables, the trained model (`vfm_model.joblib`) and diagnostics
 - `outputs/`: deliverables
 
