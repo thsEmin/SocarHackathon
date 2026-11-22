@@ -151,6 +151,29 @@ def export_pta_xlsx(ds):
     return buf.getvalue()
 
 
+# CSV versions: the main table of each workbook (CSV holds one table only). UTF-8 with BOM so Excel
+# shows the text correctly; comma separator, dot decimals.
+def _csv(df):
+    return df.to_csv(index=False, lineterminator="\r\n").encode("utf-8-sig")
+
+
+def export_vfm_csv(ds):
+    p = ds.preds[["date", "well_name"] + store.vfm.TARGETS].copy()
+    p["date"] = p.date.dt.date
+    p[store.vfm.TARGETS] = p[store.vfm.TARGETS].round(1)
+    return _csv(p)
+
+
+def export_pta_csv(ds):
+    if not len(ds.shut):
+        raise ValueError("this dataset has no shut-ins")
+    _, r, _ = _pta_table(ds)
+    if r.empty:
+        raise ValueError(NO_ELIGIBLE)
+    return _csv(r[["well_name", "shut_in_start", "duration_hr", "horner_slope_psi_cycle",
+                   "permeability_md", "skin", "dp_skin_psi"]].round(3))
+
+
 def export_plots_zip(ds):
     if not len(ds.shut):
         raise ValueError("this dataset has no shut-ins")

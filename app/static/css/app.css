@@ -529,3 +529,86 @@ input[type=date]:focus { outline: none; border-color: var(--accent); box-shadow:
   .srch { width: 150px; }
   .srch-list { position: fixed; left: 16px; right: 16px; top: calc(var(--header) + 6px); width: auto; }
 }
+
+/* ---------------- download buttons beside each chart / statistic (exports.js) */
+.xp { position: relative; margin-left: auto; flex: none; }
+.card-h > .right ~ .xp, .panel-h > .right ~ .xp { margin-left: 0; }
+.xp-btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line-strong); background: var(--card); color: var(--text-2); font: 500 12.5px var(--font); white-space: nowrap; }
+.xp-btn:hover, .xp-btn[aria-expanded="true"] { color: var(--accent-ink); border-color: var(--accent-line); background: var(--accent-soft); }
+.xp-btn:focus-visible, .xp-mini:focus-visible, .xp-menu button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.xp svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.panel-h .xp-btn span { color: inherit; font-size: 12.5px; }
+.xp-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 40; min-width: 190px; padding: 6px; display: flex; flex-direction: column;
+  background: var(--card); border: 1px solid var(--line-strong); border-radius: 10px; box-shadow: 0 16px 32px -14px rgba(11,35,65,.4); }
+.xp-menu button { text-align: left; padding: 8px 10px; border: 0; border-radius: 7px; background: transparent; color: var(--text); font: 500 13px var(--font); cursor: pointer; }
+.xp-menu button:hover { background: var(--accent-soft); color: var(--accent-ink); }
+/* statistic tiles: small icon in the top-right corner, shown on hover (always on touch screens) */
+.xp-host { position: relative; }
+.xp-mini { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; display: grid; place-items: center; padding: 0; cursor: pointer;
+  border: 1px solid var(--line-strong); border-radius: 8px; background: var(--card); color: var(--text-3); opacity: 0; transition: opacity .15s, color .15s; }
+.xp-host:hover .xp-mini, .xp-mini:focus-visible { opacity: 1; }
+.xp-mini:hover { color: var(--accent-ink); border-color: var(--accent-line); background: var(--accent-soft); }
+@media (hover: none) { .xp-mini { opacity: .85; } }
+@media (max-width: 640px) { .xp-btn span { display: none; } .xp-btn { padding: 0 8px; } }
+
+/* ---------------- Others page: engineering reference (pages/others.js) */
+.oth-bar { position: sticky; top: 8px; z-index: 20; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 18px;
+  padding: 10px 12px; background: rgba(255,255,255,.92); backdrop-filter: blur(8px); border: 1px solid var(--line-strong); border-radius: 14px; box-shadow: var(--shadow-sm); }
+.oth-tabs button { padding: 8px 16px; font-size: 14px; white-space: nowrap; flex: none; }
+.oth-filter { position: relative; display: flex; align-items: center; margin-left: auto; width: min(320px, 100%); }
+.oth-filter svg { position: absolute; left: 11px; width: 16px; height: 16px; fill: none; stroke: var(--text-3); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
+.oth-filter input { width: 100%; height: 36px; padding: 0 12px 0 34px; border: 1px solid var(--line-strong); border-radius: 999px; font: 14px var(--font); color: var(--text); background: var(--bg); }
+.oth-filter input:focus { outline: 2px solid var(--accent-line); border-color: var(--accent); }
+.oth-group { font-size: 17px; font-weight: 600; margin: 26px 2px 12px; color: var(--text); }
+.oth-group:first-child { margin-top: 4px; }
+.oth-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: var(--gap); }
+.oth-tab > .oth-plot + .oth-plot { margin-top: var(--gap); }
+.oth-f { overflow-x: auto; padding: 14px 12px; margin-bottom: 12px; border-radius: 10px; background: var(--bg-raised); border: 1px solid var(--line); }
+.oth-f math { font-size: 20px; }
+.oth-sym { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px; }
+.oth-sym th { text-align: left; font-weight: 600; font-size: 11.5px; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; padding: 4px 6px; border-bottom: 1px solid var(--line-strong); }
+.oth-sym td { padding: 5px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.oth-sym td:first-child { white-space: nowrap; font-weight: 600; }
+.oth-d { font-size: 14px; line-height: 1.55; color: var(--text-2); margin: 0 0 10px; }
+.oth-links { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; font-weight: 500; }
+.oth-usebar { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; font-size: 13px; }
+.oth-form { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 14px; }
+.oth-in { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 10px; align-items: center; font-size: 13px; color: var(--text-2); }
+.oth-in-l b { color: var(--text); font-family: var(--mono); font-weight: 600; margin-right: 4px; }
+.oth-in-v { display: flex; align-items: center; gap: 6px; }
+.oth-in-v input, .oth-in-v select { width: 100%; min-width: 0; height: 34px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 8px; font: 14px var(--mono); color: var(--text); background: var(--bg); }
+.oth-in-v input:focus, .oth-in-v select:focus { outline: 2px solid var(--accent-line); border-color: var(--accent); }
+.oth-in-u { flex: none; width: 64px; font: 12px var(--mono); color: var(--text-3); }
+.oth-out { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; margin-bottom: 10px; border-radius: 10px; background: var(--accent-soft); border: 1px solid var(--accent-line); }
+.oth-res { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.oth-res-l { min-width: 70px; font: 600 13px var(--mono); color: var(--text-2); }
+.oth-res-v { font-size: 15px; } .oth-res-v b { font-size: 22px; letter-spacing: -.02em; }
+.oth-res-x { font-size: 12.5px; }
+.oth-app { flex-basis: 100%; font-size: 12px; color: var(--positive); }
+.oth-conv { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 14px; font-size: 14px; }
+.oth-gl { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 4px 28px; }
+.oth-gl-i { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.oth-gl-i dt { font-weight: 600; font-size: 14.5px; margin-bottom: 3px; }
+.oth-gl-i dd { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--text-2); }
+.oth-gl-i dd a { font-size: 12.5px; white-space: nowrap; }
+@media (max-width: 640px) {
+  .oth-bar { top: 4px; }
+  .oth-tabs { width: 100%; overflow-x: auto; }
+  .oth-tabs button { padding: 7px 10px; font-size: 13px; }
+  .oth-filter { margin-left: 0; width: 100%; }
+  .oth-in { grid-template-columns: 1fr; gap: 4px; }
+  .oth-f math { font-size: 16px; }
+}
+
+/* ---------------- top bar: the menu keeps its full width; the search box gives up space first */
+.topbar-in > .nav { flex: 1 0 auto; }          /* never squeezed: the search box shrinks instead (down to 130 px) */
+.topbar-right { flex: 0 1 auto; min-width: 0; }
+.topbar-right > .units, .topbar-right > #lang { flex: none; }
+.srch { flex: 1 1 260px; width: auto; min-width: 130px; max-width: 260px; }
+@media (max-width: 1500px) { .nav a { padding: 8px 10px; } .topbar-in { gap: 20px; } .units-cur { display: none; } }
+@media (max-width: 1300px) { .brand-name, .brand-sep { display: none; } }
+
+/* Export page: Excel + CSV buttons side by side */
+.exp-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+.exp-note { font-size: 12px; margin: 10px 0 0; }

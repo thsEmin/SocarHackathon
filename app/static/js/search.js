@@ -64,10 +64,18 @@
     { t: "validation", page: "home", id: "val-table", k: "card", kw: "model validation accuracy error well tests" },
     { t: "physics", page: "home", id: "model", k: "card", kw: "physics checks model lift gas cut" },
   ];
+  // Others page: every equation, reference plot and calculator (titles come from others_content.js)
+  if (window.OTHERS) {
+    const O = window.OTHERS;
+    O.EQ.forEach(e => ITEMS.push({ t: "oth_" + e.id, page: "others", id: "eq-" + e.id, k: "card", kw: "equation formula " + e.kw }));
+    O.PLOTS.forEach(e => ITEMS.push({ t: "oth_" + e.id, page: "others", id: e.id, k: "chart", kw: "reference plot " + e.kw }));
+    O.CALC.forEach(e => ITEMS.push({ t: "oth_" + e.id, page: "others", id: e.id, k: "card", kw: e.kw }));
+    ITEMS.push({ t: "oth_tab_gl", page: "others", id: "oth-gloss", k: "card", kw: "glossary terms definitions dictionary" });
+  }
   const PAGES = { home: "n_home", overview: "n_overview", sensors: "n_sensors", vfm: "n_vfm", pta: "n_pta",
-                  problems: "n_problems", whatif: "n_whatif", data: "n_data", export: "n_export", well: "n_well" };
+                  problems: "n_problems", whatif: "n_whatif", data: "n_data", export: "n_export", well: "n_well", others: "n_others" };
   const PAGE_TITLE = { overview: "p_overview", sensors: "p_sensors", vfm: "p_vfm", pta: "p_pta", problems: "p_problems",
-                       whatif: "p_whatif", data: "p_data", export: "p_export", well: "p_well" };
+                       whatif: "p_whatif", data: "p_data", export: "p_export", well: "p_well", others: "p_others" };
   const here = document.body.dataset.page || "home";
 
   // ---------------------------------------------------------------- text matching
@@ -166,6 +174,8 @@
 
   // scroll to an element and flash its card
   function reveal(id) {
+    // pages with tabs (Others) open the tab that holds the element first
+    document.dispatchEvent(new CustomEvent("pn:reveal", { detail: id }));
     const el = document.getElementById(id);
     if (!el) return false;
     const box = el.closest(".card, .panel, section") || el;

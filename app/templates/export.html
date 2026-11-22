@@ -2,9 +2,13 @@
 {% block content %}
 <section class="row cols-3" id="exports">
   <div class="card kpi oil"><div class="label" data-i18n="exp_vfm"></div><p class="muted" style="min-height:62px" data-i18n="exp_vfm_d"></p>
-    <button class="btn primary" data-kind="vfm" data-icon="download"><span data-i18n="download"></span> .xlsx</button></div>
+    <div class="exp-btns"><button class="btn primary" data-kind="vfm" data-icon="download"><span data-i18n="download"></span> .xlsx</button>
+    <button class="btn" data-kind="vfm" data-fmt="csv" data-icon="download"><span data-i18n="download"></span> .csv</button></div>
+    <p class="dim exp-note" data-i18n="exp_csv_note"></p></div>
   <div class="card kpi acc"><div class="label" data-i18n="exp_pta"></div><p class="muted" style="min-height:62px" data-i18n="exp_pta_d"></p>
-    <button class="btn primary" data-kind="pta" data-icon="download"><span data-i18n="download"></span> .xlsx</button></div>
+    <div class="exp-btns"><button class="btn primary" data-kind="pta" data-icon="download"><span data-i18n="download"></span> .xlsx</button>
+    <button class="btn" data-kind="pta" data-fmt="csv" data-icon="download"><span data-i18n="download"></span> .csv</button></div>
+    <p class="dim exp-note" data-i18n="exp_csv_note"></p></div>
   <div class="card kpi gas"><div class="label" data-i18n="exp_plots"></div><p class="muted" style="min-height:62px" data-i18n="exp_plots_d"></p>
     <button class="btn primary" data-kind="plots" data-icon="download"><span data-i18n="download"></span> .zip</button></div>
 </section>
