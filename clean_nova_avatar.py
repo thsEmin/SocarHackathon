@@ -58,17 +58,27 @@ def main(src, dst):
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
     bgr = img[..., :3].copy()
     alpha = img[..., 3] if img.shape[2] == 4 else None
-    if alpha is None or alpha.min() > 250:          # no real transparency: cut the round logo out
+    if alpha is None or alpha.min() > 250:          # no real transparency: remove the painted background
         h, w = bgr.shape[:2]
-        alpha = round_alpha(h, w)
-        # painted checkerboard between the outer wave rings: grey/white, no colour -> transparent
         hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+        # parts that stick out of the round logo (e.g. a yellow hard hat) are kept whole, highlights included
+        keep = np.zeros((h, w), np.uint8)
+        yellow = ((hsv[..., 0] >= 12) & (hsv[..., 0] <= 38) & (hsv[..., 1] > 90) & (hsv[..., 2] > 90)).astype(np.uint8) * 255
+        cnts, _ = cv2.findContours(yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        for c in cnts:
+            if cv2.contourArea(c) > w * h * 0.01:
+                cv2.drawContours(keep, [cv2.convexHull(c)], -1, 255, -1)
+        if keep.any():
+            print("found an add-on outside the circle (hard hat?): kept it")
+        # painted checkerboard around and between the outer wave rings: grey/white, no colour -> transparent
         yy, xx = np.mgrid[:h, :w]
         outer = np.hypot(xx - w / 2, yy - h / 2) > min(h, w) * 0.36
-        grey = (hsv[..., 1] < 30) & (hsv[..., 2] > 150) & outer
+        grey = (hsv[..., 1] < 30) & (hsv[..., 2] > 150) & outer & (keep == 0)
+        alpha = np.full((h, w), 255, np.uint8)
         alpha[grey] = 0
+        alpha[(round_alpha(h, w) == 0) & (keep == 0) & (hsv[..., 1] < 60)] = 0   # far corners
         alpha = cv2.GaussianBlur(alpha, (3, 3), 0)
-        print("no transparency found: made the background around the round logo transparent")
+        print("no transparency found: made the background around the logo transparent")
 
     m, n = eye_mask(bgr)
     print(f"found {n} eye shape(s)")

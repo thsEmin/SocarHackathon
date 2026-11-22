@@ -4,7 +4,7 @@ window.I18N = {
     // Nova chat assistant
     nova_name: "Nova", nova_title: "Nova - Your AI assistant", nova_sub: "Ask about your wells, problems and results", nova_new: "New chat",
     nova_ph: "Ask Nova… (Enter to send)", nova_thinking: "Nova is checking the data…", nova_used: "Checked:",
-    nova_hello: "Hi, I'm Nova. Ask me about well rates, problems, PTA results, the VFM model or what-if scenarios. I answer from the dataset that is loaded in the app.",
+    nova_hello: "Welcome to the rig, comrade! No helmet, no answers. **Safety first!**",
     nova_off: "Nova is not set up yet. Add ANTHROPIC_API_KEY to the .env file in the project folder and restart the app. The rest of PetroNova works without it.",
     nova_q1: "Summarise the field status", nova_q2: "Which well has the biggest problem right now?", nova_q3: "How is the VFM model validated?",
     nova_qp_well: "Summarise this well", nova_qp_pta: "What did the build-up test show for this well?", nova_qp_whatif: "What if I open the choke 5 points on this well?",
@@ -220,7 +220,7 @@ window.I18N = {
     // Nova söhbət köməkçisi
     nova_name: "Nova", nova_title: "Nova - Sizin AI köməkçiniz", nova_sub: "Quyular, problemlər və nəticələr barədə soruşun", nova_new: "Yeni söhbət",
     nova_ph: "Novadan soruşun… (göndərmək üçün Enter)", nova_thinking: "Nova məlumatları yoxlayır…", nova_used: "Yoxlanıldı:",
-    nova_hello: "Salam, mən Novayam. Quyu debitləri, problemlər, PTA nəticələri, VFM modeli və ya \"what-if\" ssenariləri barədə soruşun. Cavabları tətbiqdə yüklənmiş məlumatlardan verirəm.",
+    nova_hello: "Buruğa xoş gəldin, yoldaş! Kaska yoxdursa, cavab da yoxdur. **Təhlükəsizlik hər şeydən öncə!**",
     nova_off: "Nova hələ qurulmayıb. Layihə qovluğundakı .env faylına ANTHROPIC_API_KEY əlavə edin və tətbiqi yenidən başladın. PetroNovanın qalan hissəsi onsuz da işləyir.",
     nova_q1: "Yatağın vəziyyətini qısa izah et", nova_q2: "Hazırda hansı quyuda ən böyük problem var?", nova_q3: "VFM modeli necə yoxlanılıb?",
     nova_qp_well: "Bu quyunu qısa izah et", nova_qp_pta: "Bu quyuda bərpa testi nə göstərdi?", nova_qp_whatif: "Bu quyuda ştuseri 5 bənd açsam nə olar?",
@@ -428,7 +428,7 @@ window.I18N = {
     // Nova: чат-помощник
     nova_name: "Nova", nova_title: "Nova - ваш ИИ-помощник", nova_sub: "Спросите о скважинах, проблемах и результатах", nova_new: "Новый чат",
     nova_ph: "Спросите Nova… (Enter — отправить)", nova_thinking: "Nova проверяет данные…", nova_used: "Проверено:",
-    nova_hello: "Здравствуйте, я Nova. Спросите о дебитах скважин, проблемах, результатах ГДИС (PTA), модели VFM или сценариях «что если». Я отвечаю по данным, загруженным в приложение.",
+    nova_hello: "Добро пожаловать на буровую, товарищ! Нет каски — нет ответов. **Безопасность прежде всего!**",
     nova_off: "Nova ещё не настроена. Добавьте ANTHROPIC_API_KEY в файл .env в папке проекта и перезапустите приложение. Остальная часть PetroNova работает и без этого.",
     nova_q1: "Кратко опиши состояние месторождения", nova_q2: "На какой скважине сейчас самая серьёзная проблема?", nova_q3: "Как проверена модель VFM?",
     nova_qp_well: "Кратко опиши эту скважину", nova_qp_pta: "Что показало КВД на этой скважине?", nova_qp_whatif: "Что будет, если открыть штуцер на 5 пунктов на этой скважине?",
