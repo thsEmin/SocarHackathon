@@ -396,6 +396,7 @@
       NUM.oil = PN.cv("oil", ov.totals.oil_rate_stbd); NUM.cum = PN.cv("oil", ov.period_cum_oil) / 1000;
       $("n-cum-u").textContent = `10³ ${PN.vl("oil")}`;
       NUM.flag = ov.wells.filter(w => w.status !== "ok").length;
+      $("n-date").textContent = PN.date(ov.date);   // the day these numbers describe
     } catch (e) { /* the story still runs on synthetic data */ }
     try {
       const ev = await PN.api("/api/pta/events");

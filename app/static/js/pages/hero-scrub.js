@@ -2,7 +2,7 @@
      0%-45%   the pumpjack walking beam pitches down (video frames)
      45%-95%  the camera dives down the wellbore through the rock layers to the reservoir
      95%-100% the reservoir fades to dark and the page continues below
-   Scrolling up plays everything backwards. Frames + manifest.json come from build_scroll_frames.py. */
+   Scrolling up plays everything backwards. Frames + manifest.json are pre-built in static/frames/. */
 (function () {
   const $ = id => document.getElementById(id);
   const hero = $("hero"), cv = $("hero-canvas");

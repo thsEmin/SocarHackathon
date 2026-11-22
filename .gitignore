@@ -20,3 +20,6 @@ Thumbs.db
 
 # hackathon score experiments (kept local)
 test_VFM_PTA/
+
+# mentor-style test packs (large CSVs, rebuilt from Dataset/)
+test_packs/

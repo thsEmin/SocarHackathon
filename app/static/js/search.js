@@ -48,7 +48,7 @@
     { t: "pb_k_total", page: "problems", id: "k-total-f", k: "card", kw: "lost value money" },
     { t: "pb_k_now", page: "problems", id: "k-now-f", k: "card", kw: "losing now per day" },
     // what-if
-    { t: "wi_controls", page: "whatif", id: "choke-abs", k: "card", well: true, kw: "choke lift gas sliders scenario" },
+    { t: "wi_controls", page: "whatif", id: "choke-abs", k: "card", well: true, kw: "choke lift gas sliders scenario simulation what-if" },
     { t: "wi_effects", page: "whatif", id: "c-wf", k: "chart", well: true, kw: "effect breakdown waterfall scenario" },
     { t: "wi_chain", page: "whatif", id: "chain", k: "card", well: true, kw: "physics chain ipr how it works" },
     // well profile

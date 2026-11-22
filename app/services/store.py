@@ -36,6 +36,7 @@ class Dataset:
         self.clean_log = clean_log
         self.created = time.time()
         self._pta_cache = {}
+        self.test_rows, self.test_check = None, None   # VFM vs uploaded well tests (if any)
 
     # inputs dict in the format src/pta.py expects
     def pta_inputs(self):
@@ -50,7 +51,8 @@ class Dataset:
         return {"id": self.id, "label": self.label, "source": self.source,
                 "wells": self.wells(), "start": str(self.preds.date.min().date()),
                 "end": str(self.preds.date.max().date()), "n_minutes": int(len(self.hf)),
-                "n_shut_ins": int(len(self.shut)), "cleaning": self.clean_log}
+                "n_shut_ins": int(len(self.shut)), "cleaning": self.clean_log,
+                "test_check": self.test_check}
 
 
 # ------------------------------------------------------------------ shared (training-side) data
@@ -129,7 +131,7 @@ def _read_table(name, data):
 
 
 def start_upload(files):
-    """files: dict role -> (filename, bytes). Roles: 'hf' (required), 'choke' (optional)."""
+    """files: dict role -> (filename, bytes). Roles: 'hf' (required), 'choke' and 'tests' (optional)."""
     job_id = uuid.uuid4().hex[:10]
     _JOBS[job_id] = {"status": "queued", "stage": "queued", "progress": 0, "error": None, "dataset": None,
                      "warnings": []}
@@ -145,75 +147,138 @@ def _stage(job_id, stage, progress):
     _JOBS[job_id].update(stage=stage, progress=progress, status="running")
 
 
+def with_choke_history(choke):
+    """Put the competition choke log (Jan-Sep 2025) in front of an uploaded one, so a well whose
+    opening is not restated at the start of the new file keeps its last known opening instead of
+    'unknown'. For each well only history from before its first uploaded event is kept."""
+    base = prep.load_choke()
+    first = choke.groupby("well_name").timestamp.min()
+    lim = base.well_name.map(first).fillna(pd.Timestamp.max)
+    out = pd.concat([base[base.timestamp < lim], choke], ignore_index=True)
+    return out.drop_duplicates().sort_values(["well_name", "timestamp"]).reset_index(drop=True)
+
+
+def test_accuracy(model, tests, h, daily):
+    """Predicted vs measured on well tests inside the uploaded period (the model is NOT refit).
+    Returns (rows per test, summary dict) or (empty, None) when no test can be checked."""
+    t = prep.test_table(h, prep.load_static(), tests)
+    t = t[t.well_name.isin(model.oil.wells)]
+    ok = (~t.bad_oil & ~t.bad_water & ~t.bad_gas & ~t.test_during_shut_in
+          & t.dh_pressure_psia.notna() & t.choke_opening_pct.notna())
+    t = t[ok].reset_index(drop=True)
+    if t.empty:
+        return t, None
+    t["test_mid"] = t.test_start + (t.test_end - t.test_start) / 2
+    x = model.prepare(t, "test_mid", daily)
+    p = model.predict(x)
+    rows = t[["well_name", "test_start", "test_end"]].copy()
+    summ = {"n_tests": int(len(t)), "mape_pct": {}, "by_well": {}}
+    for y in vfm.TARGETS:
+        rows[f"{y}_measured"] = t[y].values
+        rows[f"{y}_predicted"] = np.round(p[y], 1)
+        rows[f"{y}_error_pct"] = np.round((p[y] - t[y].values) / t[y].values * 100, 2)
+        summ["mape_pct"][y] = round(float(rows[f"{y}_error_pct"].abs().mean()), 2)
+    for w, g in rows.groupby("well_name"):
+        summ["by_well"][w] = {y: round(float(g[f"{y}_error_pct"].abs().mean()), 2) for y in vfm.TARGETS}
+    return rows, summ
+
+
+def build_dataset(files, warn, stage=lambda s, p: None, ds_id=None):
+    """The whole upload pipeline. files: role -> (filename, bytes); warn: list for warnings.
+    Used by the web upload and by predict_new.py. Returns the Dataset (not registered)."""
+    stage("reading", 5)
+    name, data = files["hf"]
+    raw = _read_table(name, data)
+    missing = [c for c in HF_REQUIRED if c not in raw.columns]
+    if missing:
+        raise ValueError(f"high-frequency file is missing columns: {', '.join(missing)}")
+    known = set(shared()["model"].oil.wells)
+    unknown = sorted(set(raw.well_name.astype(str)) - known)
+    if unknown:
+        warn.append(f"wells not in the trained model were skipped: {', '.join(unknown)}")
+        raw = raw[raw.well_name.isin(known)]
+    if raw.empty:
+        raise ValueError("no rows for wells the model was trained on (GL-01 ... GL-10)")
+    raw = raw[HF_REQUIRED]
+
+    if "choke" in files:
+        cname, cdata = files["choke"]
+        choke = _read_table(cname, cdata)
+        if not {"timestamp", "well_name", "choke_opening_pct"} <= set(choke.columns):
+            raise ValueError("choke file needs columns timestamp, well_name, choke_opening_pct")
+        choke["timestamp"] = pd.to_datetime(choke.timestamp, format="mixed")
+        choke = with_choke_history(choke.drop_duplicates())
+    else:
+        choke = prep.load_choke()
+        warn.append("no choke file uploaded: the competition choke log was used")
+
+    tests = None
+    if "tests" in files:
+        tname, tdata = files["tests"]
+        tests = _read_table(tname, tdata)
+        miss = [c for c in prep.TEST_REQUIRED if c not in tests.columns]
+        if miss:
+            raise ValueError(f"well-test file is missing columns: {', '.join(miss)}")
+
+    stage("cleaning (duplicates, -999.25, spikes)", 20)
+    h, log = prep.clean_hf(raw)
+    h = prep.attach_choke(h, choke)
+    if h.choke_opening_pct.isna().any():
+        warn.append("some minutes are before the first choke record: choke assumed unknown there")
+
+    stage("building daily table and finding shut-ins", 45)
+    daily = prep.daily_table(h)
+    shut = prep.shut_in_events(h, choke)
+    if len(shut):
+        shut = shut[shut.inside_hf_window & (shut.shut_start >= h.timestamp.min())].reset_index(drop=True)
+
+    stage("running the VFM model", 65)
+    preds = vfm.predict_daily(shared()["model"], daily)
+
+    log = log | {"rows_clean": int(len(h))}
+    n_w = preds.well_name.nunique()
+    label = f"Upload: {name} ({preds.date.min():%d %b} - {preds.date.max():%d %b %Y}, {n_w} well{'s' if n_w > 1 else ''})"
+    ds = Dataset(ds_id or "up-" + uuid.uuid4().hex[:10], label, h, daily, preds, shut, choke, log, "upload")
+
+    if tests is not None:
+        stage("checking the VFM against your well tests", 80)
+        rows, summ = test_accuracy(shared()["model"], tests, h, daily)
+        if summ is None:
+            warn.append("no well test in the file could be checked (outside the sensor period, during a "
+                        "shut-in, or without sensor data)")
+        else:
+            ds.test_rows, ds.test_check = rows, summ
+    return ds
+
+
 def _run_upload(job_id, files):
     j = _JOBS[job_id]
     try:
-        _stage(job_id, "reading", 5)
-        name, data = files["hf"]
-        raw = _read_table(name, data)
-        missing = [c for c in HF_REQUIRED if c not in raw.columns]
-        if missing:
-            raise ValueError(f"high-frequency file is missing columns: {', '.join(missing)}")
-        known = set(shared()["model"].oil.wells)
-        unknown = sorted(set(raw.well_name.astype(str)) - known)
-        if unknown:
-            j["warnings"].append(f"wells not in the trained model were skipped: {', '.join(unknown)}")
-            raw = raw[raw.well_name.isin(known)]
-        if raw.empty:
-            raise ValueError("no rows for wells the model was trained on (GL-01 ... GL-10)")
-        raw = raw[HF_REQUIRED]
-
-        if "choke" in files:
-            cname, cdata = files["choke"]
-            choke = _read_table(cname, cdata)
-            if not {"timestamp", "well_name", "choke_opening_pct"} <= set(choke.columns):
-                raise ValueError("choke file needs columns timestamp, well_name, choke_opening_pct")
-            choke["timestamp"] = pd.to_datetime(choke.timestamp, format="mixed")
-            choke = choke.drop_duplicates().sort_values(["well_name", "timestamp"]).reset_index(drop=True)
-        else:
-            choke = prep.load_choke()
-            j["warnings"].append("no choke file uploaded: the competition choke log was used")
-
-        _stage(job_id, "cleaning (duplicates, -999.25, spikes)", 20)
-        h, log = prep.clean_hf(raw)
-        h = prep.attach_choke(h, choke)
-        if h.choke_opening_pct.isna().any():
-            j["warnings"].append("some minutes are before the first choke record: choke assumed unknown there")
-
-        _stage(job_id, "building daily table and finding shut-ins", 45)
-        daily = prep.daily_table(h)
-        shut = prep.shut_in_events(h, choke)
-        if len(shut):
-            shut = shut[shut.inside_hf_window & (shut.shut_start >= h.timestamp.min())].reset_index(drop=True)
-
-        _stage(job_id, "running the VFM model", 65)
-        preds = vfm.predict_daily(shared()["model"], daily)
+        ds = build_dataset(files, j["warnings"], lambda s, p: _stage(job_id, s, p), "up-" + job_id)
 
         _stage(job_id, "saving", 90)
-        ds_id = "up-" + job_id
-        out = UPLOADS / ds_id
+        out = UPLOADS / ds.id
         out.mkdir(parents=True, exist_ok=True)
-        preds.to_csv(out / "daily_predictions.csv", index=False)
-        log = log | {"rows_clean": int(len(h))}
-        n_w = preds.well_name.nunique()
-        label = f"Upload: {name} ({preds.date.min():%d %b} - {preds.date.max():%d %b %Y}, {n_w} well{'s' if n_w > 1 else ''})"
-        ds = Dataset(ds_id, label, h, daily, preds, shut, choke, log, "upload")
+        ds.preds.to_csv(out / "daily_predictions.csv", index=False)
+        if ds.test_rows is not None:
+            ds.test_rows.to_csv(out / "well_test_check.csv", index=False)
+            j["test_check"] = ds.test_check
 
         # check every shut-in for PTA now, so the page can say how many are usable and why not
         _stage(job_id, "checking shut-ins for PTA", 95)
         inp = ds.pta_inputs()
         auto = []
-        for i in range(len(shut)):
-            res, _, err = pta.analyse_safe(inp, shut.iloc[i])
+        for i in range(len(ds.shut)):
+            res, _, err = pta.analyse_safe(inp, ds.shut.iloc[i])
             auto.append((res, err))
             if err:
-                j["warnings"].append(f"{shut.well_name.iloc[i]} shut-in {shut.shut_start.iloc[i]:%d %b %Y %H:%M}: "
+                j["warnings"].append(f"{ds.shut.well_name.iloc[i]} shut-in {ds.shut.shut_start.iloc[i]:%d %b %Y %H:%M}: "
                                      f"{err['reason']}")
         ds._pta_cache["auto"] = auto
         j["pta_ok"] = sum(e is None for _, e in auto)
         j["pta_total"] = len(auto)
         with _LOCK:
-            _DATASETS[ds_id] = ds
-        j.update(status="done", stage="done", progress=100, dataset=ds_id)
+            _DATASETS[ds.id] = ds
+        j.update(status="done", stage="done", progress=100, dataset=ds.id)
     except Exception as e:  # report any problem to the page instead of crashing
         j.update(status="error", error=str(e), trace=traceback.format_exc()[-1500:])

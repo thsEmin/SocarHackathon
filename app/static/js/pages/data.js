@@ -23,6 +23,7 @@
     const fd = new FormData();
     fd.append("hf", $("f-hf").files[0]);
     if ($("f-choke").files[0]) fd.append("choke", $("f-choke").files[0]);
+    if ($("f-tests").files[0]) fd.append("tests", $("f-tests").files[0]);
     $("go").disabled = true; $("prog").classList.remove("hidden"); $("done").classList.add("hidden"); $("warn").textContent = "";
     $("stage").textContent = "uploading…"; $("prog").firstElementChild.style.width = "3%";
     try {
@@ -41,14 +42,27 @@
     if (j.status === "done") {
       newDs = j.dataset; await PN.refreshDatasets(); render();
       $("pta-count").textContent = PN.t("pta_eligible", { ok: j.pta_ok ?? 0, n: j.pta_total ?? 0 });
+      $("acc").innerHTML = accuracy(j.test_check);
       $("done").classList.remove("hidden"); $("go").disabled = false; PN.toast("✓ " + j.dataset, true); return;
     }
     setTimeout(() => poll(job), 800);
   }
 
+  // VFM error on the uploaded well tests (model not refit): overall + per well, % per phase
+  function accuracy(c) {
+    if (!c) return "";
+    const ph = ["oil_rate_stbd", "water_rate_stbd", "gas_rate_mscfd"], f = v => v.toFixed(1) + " %";
+    const head = `<tr><th>${PN.t("well")}</th>${ph.map(p => `<th class="n">${PN.t(p.split("_")[0])}</th>`).join("")}</tr>`;
+    const rows = Object.entries(c.by_well).map(([w, e]) => `<tr><td>${w}</td>${ph.map(p => `<td class="n mono">${f(e[p])}</td>`).join("")}</tr>`).join("");
+    const all = `<tr class="hl"><td><b>${PN.t("all_wells")}</b></td>${ph.map(p => `<td class="n mono"><b>${f(c.mape_pct[p])}</b></td>`).join("")}</tr>`;
+    return `<div style="font-weight:600;margin-bottom:4px">${PN.t("test_check_title", { n: c.n_tests })}</div>
+      <div class="dim" style="font-size:12px;margin-bottom:6px">${PN.t("test_check_sub")}</div><table class="t">${head}${all}${rows}</table>`;
+  }
+
   PN.start({
     load() {
       bindDrop($("drop-hf"), $("f-hf"), "n-hf"); bindDrop($("drop-choke"), $("f-choke"), "n-choke");
+      bindDrop($("drop-tests"), $("f-tests"), "n-tests");
       $("go").onclick = upload;
       $("open-ds").onclick = () => { if (newDs) { PN.setDataset(newDs); location.href = "/vfm"; } };
       render();

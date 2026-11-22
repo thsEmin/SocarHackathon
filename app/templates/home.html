@@ -8,7 +8,7 @@
 <!-- two-stage scroll hero (620vh runway, picture pinned):
      0-45%  pumpjack downstroke · 45-95%  camera dives down the wellbore · 95-100%  fade into the page.
      The five "how it works" steps play on the right while it scrolls (12%-93%).
-     Frames + manifest.json are made by build_scroll_frames.py -->
+     Frames + manifest.json are pre-built in static/frames/ -->
 <section class="h-hero" id="hero" data-frames="{{ url_for('static', filename='frames/') }}">
   <div class="h-pin" style="background-image:url('{{ url_for('static', filename='frames/frame_0001.webp') }}')">
     <canvas class="h-hero-bg" id="hero-canvas" aria-hidden="true"></canvas>
@@ -81,7 +81,7 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <div class="eyebrow br on-ink" data-i18n="h_num_eyebrow"></div>
-      <h2 class="h2" data-i18n="h_num_title"></h2>
+      <h2 class="h2"><span data-i18n="h_num_title"></span> <span class="num-date" id="n-date"></span></h2>
     </div>
     <div class="num-grid">
       <div class="num reveal"><div class="tag"><span class="sq" style="background:var(--oil)"></span><span data-i18n="k_field_oil"></span></div><div class="big"><span data-count id="n-oil">—</span><small data-i18n="stbd_oil"></small></div></div>
@@ -142,14 +142,6 @@
       </div>
     </div>
   </div>
-</section>
-
-<!-- 7 · call to action -->
-<section class="cta">
-  <div class="wrap"><div class="cta-in reveal">
-    <h2 class="h2" data-i18n="h_cta_title"></h2>
-    <a class="btn ink" href="/overview"><span data-i18n="h_cta_open"></span><span class="arr">→</span></a>
-  </div></div>
 </section>
 {% endblock %}
 

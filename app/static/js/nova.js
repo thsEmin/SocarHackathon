@@ -12,7 +12,7 @@
   // ---------- markup
   const fab = document.createElement("button");
   fab.className = "nova-fab"; fab.type = "button"; fab.setAttribute("aria-haspopup", "dialog"); fab.setAttribute("aria-label", "Nova");
-  // avatar (eyes removed from the picture by clean_nova_avatar.py) + two live eyes drawn on top
+  // avatar (picture without eyes) + two live eyes drawn on top
   fab.innerHTML = `<span class="nova-ava"><img src="/static/nova_avatar.png?v=2" alt="" draggable="false">
       <span class="nova-eyes" aria-hidden="true"><span class="nova-gaze"><i class="nova-eye"></i><i class="nova-eye"></i></span></span></span>`;
   fab.querySelector("img").onerror = e => { e.target.remove(); };   // no picture yet: eyes on the navy disc

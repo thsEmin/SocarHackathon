@@ -265,3 +265,6 @@ body[data-page="home"] .footer { background: #090D16; border-top: 1px solid rgba
   .h-layer { white-space: normal; width: max-content; max-width: calc(100vw - 140px); font-size: 13px; border-radius: 14px; }
   .h-layer::before { display: none; }
 }
+
+/* date next to "The field right now": the day the numbers describe */
+.numbers .num-date { font-size: .42em; font-weight: 600; letter-spacing: 0; color: #FFA43A; white-space: nowrap; vertical-align: middle; margin-left: .35em; }
