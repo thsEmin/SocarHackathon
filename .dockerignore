@@ -8,3 +8,6 @@ __pycache__
 outputs
 Hackathon2026 README.docx
 SOCAR_Hackathon_2026_Challenge.html
+
+# secrets: set ANTHROPIC_API_KEY on the host instead
+.env

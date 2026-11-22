@@ -8,7 +8,7 @@ from flask import Flask, jsonify, render_template, request, send_file, abort
 from flask.json.provider import DefaultJSONProvider
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from app.services import store, insights, pta_service, views, diagnostics  # noqa: E402
+from app.services import store, insights, pta_service, views, diagnostics, nova  # noqa: E402
 
 PAGES = ["home", "overview", "problems", "data", "sensors", "vfm", "whatif", "pta", "well", "export"]
 
@@ -140,6 +140,29 @@ def create_app():
             v = request.args.get(name, 0, type=float)
             return 0.0 if not math.isfinite(v) else max(-lim, min(lim, v))
         return jsonify(insights.whatif(d, well_arg(d), arg("choke", 10), arg("lift", 50)))
+
+    # ---------------------------------------------------------- Nova chat assistant
+    @app.get("/api/nova/status")
+    def api_nova_status():
+        return jsonify({"available": nova.available()})
+
+    @app.post("/api/nova/chat")
+    def api_nova_chat():
+        body = request.get_json(silent=True) or {}
+        d = store.get(str(body.get("ds") or "preloaded"), strict=True) or store.get("preloaded")
+        ip = request.access_route[0] if request.access_route else (request.remote_addr or "?")
+        if nova.available() and not nova.allow(ip):
+            return jsonify({"error": "too many questions; wait a few minutes", "code": "limit"}), 429
+        well = str(body.get("well") or "")
+        well = well if well in d.wells() else ""
+        try:
+            return jsonify(nova.chat(d, body.get("messages") or [], page=str(body.get("page") or "")[:20],
+                                     well=well, lang=str(body.get("lang") or "en")))
+        except nova.NovaError as e:
+            return jsonify({"error": str(e), "code": e.code}), e.status
+        except Exception as e:  # never show the user a raw server page
+            app.logger.exception("Nova failed")
+            return jsonify({"error": f"Nova failed: {e}", "code": "api"}), 500
 
     @app.post("/api/upload")
     def api_upload():
