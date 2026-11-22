@@ -66,7 +66,7 @@ This writes `VFM_daily_predictions.xlsx`, `PTA_results.xlsx` and, with `--tests`
 
 | # | Required | Where |
 |---|---|---|
-| 1 | Result files for Phase 1 (VFM) and Phase 2 (PTA), CSV or Excel | `outputs/VFM_daily_predictions.xlsx` (sheet `predictions`) and `outputs/PTA_results.xlsx` (sheet `results`) |
+| 1 | Result files for Phase 1 (VFM) and Phase 2 (PTA), CSV or Excel | **`outputs/VFM_submission.xlsx`** and **`outputs/PTA_submission.xlsx`** (the files we submitted for scoring). Same numbers, with extra detail sheets: `outputs/VFM_daily_predictions.xlsx` and `outputs/PTA_results.xlsx` |
 | 2 | Trained model in `.pkl` format | `outputs/vfm_model.pkl` |
 | 3 | Notebook with all cells run, showing our best results | `PetroNova_pipeline.ipynb` (repo root) |
 | 4 | Folder with all PTA plots | `outputs/pta_plots/` (one 4-panel figure per shut-in) |
@@ -77,6 +77,8 @@ The pitch deck is `final_presentation.pptx`.
 
 | File | Contents |
 |---|---|
+| `VFM_submission.xlsx` | **Phase 1 submission** (the file we uploaded for scoring): `date, well_name, oil_rate_stbd, water_rate_stbd, gas_rate_mscfd`, 10 wells × 273 days. Same numbers as `VFM_daily_predictions.xlsx`. |
+| `PTA_submission.xlsx` | **Phase 2 submission** (the file we uploaded for scoring): `Well, shut_in_time, Horner slope (psi/cycle), permeability_md, Skin, dP Skin (psi)` for the 6 shut-ins. Same numbers as `PTA_results.xlsx`, rounded. |
 | `VFM_daily_predictions.xlsx` | Sheet `predictions` with `date, well_name, oil_rate_stbd, water_rate_stbd, gas_rate_mscfd` (10 wells × 273 days). Also: day flags, validation table, physics checks, drawdowns used. |
 | `PTA_results.xlsx` | Sheet `results` with Horner slope, permeability, skin and ΔP skin for each shut-in. Also: details and interpretation, sensitivity, method. |
 | `pta_plots/*.png` | One 4-panel figure per shut-in: rate and pressure history, log-log diagnostic, Horner plot, results |
