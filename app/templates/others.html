@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- "Others": engineering reference. Cards are built by js/pages/others.js from js/others_content.js -->
+<div class="oth-bar" id="oth-bar">
+  <div class="seg oth-tabs" id="oth-tabs" role="tablist">
+    <button type="button" role="tab" data-tab="eq" data-i18n="oth_tab_eq"></button>
+    <button type="button" role="tab" data-tab="pl" data-i18n="oth_tab_pl"></button>
+    <button type="button" role="tab" data-tab="calc" data-i18n="oth_tab_calc"></button>
+    <button type="button" role="tab" data-tab="gl" data-i18n="oth_tab_gl"></button>
+  </div>
+  <label class="oth-filter"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+    <input type="search" id="oth-filter" autocomplete="off"></label>
+</div>
+<section class="oth-tab" id="tab-eq" role="tabpanel"></section>
+<section class="oth-tab hidden" id="tab-pl" role="tabpanel"></section>
+<section class="oth-tab hidden" id="tab-calc" role="tabpanel"></section>
+<section class="oth-tab hidden" id="tab-gl" role="tabpanel"></section>
+<div class="dim hidden" id="oth-none" style="padding:24px 4px;font-size:14px" data-i18n="oth_none"></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/pages/others.js') }}"></script>{% endblock %}

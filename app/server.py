@@ -10,7 +10,7 @@ from flask.json.provider import DefaultJSONProvider
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.services import store, insights, pta_service, views, diagnostics, nova  # noqa: E402
 
-PAGES = ["home", "overview", "problems", "data", "sensors", "vfm", "whatif", "pta", "well", "export"]
+PAGES = ["home", "overview", "problems", "data", "sensors", "vfm", "whatif", "pta", "well", "export", "others"]
 
 
 class SafeJSON(DefaultJSONProvider):
@@ -197,6 +197,10 @@ def create_app():
                             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         if kind not in makers:
             abort(404)
+        # ?fmt=csv: the main table as CSV (VFM predictions, PTA results)
+        if request.args.get("fmt") == "csv" and kind in ("vfm", "pta"):
+            makers[kind] = ((views.export_vfm_csv, "VFM_daily_predictions.csv", "text/csv") if kind == "vfm"
+                            else (views.export_pta_csv, "PTA_results.csv", "text/csv"))
         fn, name, mime = makers[kind]
         try:
             data = fn(d)

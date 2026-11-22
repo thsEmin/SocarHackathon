@@ -27,6 +27,7 @@
       <a href="/pta" data-page="pta"><span data-i18n="n_pta"></span></a>
       <a href="/problems" data-page="problems"><span data-i18n="n_problems"></span></a>
       <a href="/whatif" data-page="whatif"><span data-i18n="n_whatif"></span></a>
+      <a href="/others" data-page="others"><span data-i18n="n_others"></span></a>
     </nav>
     <div class="topbar-right">
       <div class="units" id="units"><button class="units-btn" type="button" aria-haspopup="true"><span data-i18n="u_units"></span><span class="units-cur mono"></span></button><div class="units-pop hidden"></div></div>
@@ -77,7 +78,9 @@
 <script src="{{ url_for('static', filename='vendor/plotly.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
 <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/others_content.js') }}"></script>
 <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+<script src="{{ url_for('static', filename='js/exports.js') }}"></script>
 <script src="{{ url_for('static', filename='js/nova.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>

@@ -182,6 +182,16 @@ pages about one well, the Well selector.
   PTA and becomes a new dataset.
 - Export: download VFM daily predictions (Excel), PTA results (Excel), PTA plots (zip) and the problems
   and losses table (Excel).
+- Others (engineering reference, last item in the top menu): four tabs. Equations: every formula PetroNova
+  uses (tp, Agarwal time, Horner m and P*, p1hr, permeability k, skin, ΔP skin, flow efficiency, radius of
+  investigation, wellbore storage, Bourdet derivative, datum correction, water cut/GOR/GLR, VFM model,
+  decline, what-if, stimulation gain) with symbols, units and plain explanations. Reference plots: log-log
+  patterns (storage, radial, fault, closed boundary, pressure support), Horner, IPR/Vogel, Arps decline, skin
+  pressure profile, gas-lift performance curve. Calculators: k from Horner slope, skin/ΔP skin/FE, radius of
+  investigation, stimulation gain, unit converter; the "Use <well> values" button fills them with the selected
+  well's data. Glossary of terms. A filter box narrows each tab.
+- Every chart has a Download button (picture PNG or data CSV) and every statistic tile a small download icon.
+- Search box in the top bar (or press /): finds any chart, page, well or Others card by name.
 - Nova (you): the round avatar with the hard hat in the bottom-right corner of every page.
 
 ===== METHODOLOGY.md =====

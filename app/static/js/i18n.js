@@ -1,6 +1,14 @@
 /* PetroNova texts. Azerbaijani technical terms should be proofread by the team's petroleum engineers. */
 window.I18N = {
   en: {
+    exp_csv_note: "CSV = the main table only (one row per day or per shut-in); the extra sheets are in the Excel file.",
+    // Others page (engineering reference)
+    n_others: "Others", p_others: "Engineering reference", s_others: "Equations, reference plots, calculators and glossary",
+    oth_tab_eq: "Equations", oth_tab_pl: "Reference plots", oth_tab_calc: "Calculators", oth_tab_gl: "Glossary",
+    oth_filter_ph: "Filter, e.g. skin, horner, vogel…", oth_none: "Nothing matches this filter.",
+    // download buttons beside charts and statistics
+    xp_btn: "Download", xp_png: "Picture (PNG)", xp_csv: "Data (CSV for Excel)", xp_empty: "Nothing to download yet: wait for the data to load.",
+    xp_time: "Date / time", xp_item: "Item", xp_value: "Value", xp_unit: "Unit", xp_note: "Note",
     // top-bar search
     srch_ph: "Search charts, pages, wells…", srch_none: "Nothing found. Try another word, e.g. horner, water cut or GL-03.",
     srch_chart: "Chart", srch_card: "Card", srch_page: "Page", srch_well: "Well", srch_nova_where: "Chat assistant",
@@ -221,6 +229,14 @@ window.I18N = {
     hr_day: "Day", hr_daily: "Daily value", hr_shut: "shut-in",
   },
   az: {
+    exp_csv_note: "CSV yalnız əsas cədvəldir (hər gün və ya hər bağlanma üçün bir sətir); əlavə vərəqlər Excel faylındadır.",
+    // Digər səhifəsi (mühəndis arayışı)
+    n_others: "Digər", p_others: "Mühəndis arayışı", s_others: "Tənliklər, arayış qrafikləri, kalkulyatorlar və lüğət",
+    oth_tab_eq: "Tənliklər", oth_tab_pl: "Arayış qrafikləri", oth_tab_calc: "Kalkulyatorlar", oth_tab_gl: "Lüğət",
+    oth_filter_ph: "Süzgəc, məs. skin, horner, vogel…", oth_none: "Bu süzgəcə uyğun heç nə yoxdur.",
+    // qrafik və göstəricilərin yanında yükləmə düymələri
+    xp_btn: "Yüklə", xp_png: "Şəkil (PNG)", xp_csv: "Məlumat (Excel üçün CSV)", xp_empty: "Hələ yükləmək üçün məlumat yoxdur: məlumatın yüklənməsini gözləyin.",
+    xp_time: "Tarix / vaxt", xp_item: "Göstərici", xp_value: "Dəyər", xp_unit: "Vahid", xp_note: "Qeyd",
     // yuxarı paneldə axtarış
     srch_ph: "Qrafik, səhifə, quyu axtarın…", srch_none: "Heç nə tapılmadı. Başqa söz yoxlayın, məsələn horner, sululuq və ya GL-03.",
     srch_chart: "Qrafik", srch_card: "Kart", srch_page: "Səhifə", srch_well: "Quyu", srch_nova_where: "Söhbət köməkçisi",
@@ -433,6 +449,14 @@ window.I18N = {
     hr_day: "Gün", hr_daily: "Gündəlik dəyər", hr_shut: "dayandırılıb",
   },
   ru: {
+    exp_csv_note: "CSV — только основная таблица (строка на сутки или на остановку); остальные листы — в файле Excel.",
+    // страница «Прочее» (инженерный справочник)
+    n_others: "Прочее", p_others: "Инженерный справочник", s_others: "Формулы, эталонные графики, калькуляторы и глоссарий",
+    oth_tab_eq: "Формулы", oth_tab_pl: "Эталонные графики", oth_tab_calc: "Калькуляторы", oth_tab_gl: "Глоссарий",
+    oth_filter_ph: "Фильтр, например скин, хорнер, вогель…", oth_none: "Ничего не найдено по этому фильтру.",
+    // кнопки загрузки у графиков и показателей
+    xp_btn: "Скачать", xp_png: "Изображение (PNG)", xp_csv: "Данные (CSV для Excel)", xp_empty: "Пока нечего скачивать: дождитесь загрузки данных.",
+    xp_time: "Дата / время", xp_item: "Показатель", xp_value: "Значение", xp_unit: "Единица", xp_note: "Примечание",
     // поиск в верхней панели
     srch_ph: "Поиск графиков, страниц, скважин…", srch_none: "Ничего не найдено. Попробуйте другое слово, например horner, обводнённость или GL-03.",
     srch_chart: "График", srch_card: "Карточка", srch_page: "Страница", srch_well: "Скважина", srch_nova_where: "Чат-помощник",

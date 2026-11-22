@@ -3,7 +3,8 @@
     const kind = btn.dataset.kind, label = btn.innerHTML;
     btn.disabled = true; btn.innerHTML = `<span>${PN.t("preparing")}</span>`;
     try {
-      const r = await fetch(`/api/export/${kind}?ds=${encodeURIComponent(PN.state.ds)}`);
+      const fmt = btn.dataset.fmt ? `&fmt=${btn.dataset.fmt}` : "";
+      const r = await fetch(`/api/export/${kind}?ds=${encodeURIComponent(PN.state.ds)}${fmt}`);
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
       const blob = await r.blob();
       const name = (r.headers.get("Content-Disposition") || "").match(/filename="?([^"]+)"?/);
