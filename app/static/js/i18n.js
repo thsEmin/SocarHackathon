@@ -1,6 +1,10 @@
 /* PetroNova texts. Azerbaijani technical terms should be proofread by the team's petroleum engineers. */
 window.I18N = {
   en: {
+    // top-bar search
+    srch_ph: "Search charts, pages, wells…", srch_none: "Nothing found. Try another word, e.g. horner, water cut or GL-03.",
+    srch_chart: "Chart", srch_card: "Card", srch_page: "Page", srch_well: "Well", srch_nova_where: "Chat assistant",
+    srch_sensor_chart: "Sensor chart: pressures, temperature, lift gas, choke", srch_vfm_chart: "Daily oil, water and gas rates (VFM)",
     // Nova chat assistant
     nova_name: "Nova", nova_title: "Nova - Your AI assistant", nova_sub: "Ask about your wells, problems and results", nova_new: "New chat",
     nova_ph: "Ask Nova… (Enter to send)", nova_thinking: "Nova is checking the data…", nova_used: "Checked:",
@@ -217,6 +221,10 @@ window.I18N = {
     hr_day: "Day", hr_daily: "Daily value", hr_shut: "shut-in",
   },
   az: {
+    // yuxarı paneldə axtarış
+    srch_ph: "Qrafik, səhifə, quyu axtarın…", srch_none: "Heç nə tapılmadı. Başqa söz yoxlayın, məsələn horner, sululuq və ya GL-03.",
+    srch_chart: "Qrafik", srch_card: "Kart", srch_page: "Səhifə", srch_well: "Quyu", srch_nova_where: "Söhbət köməkçisi",
+    srch_sensor_chart: "Sensor qrafiki: təzyiqlər, temperatur, qazlift, ştuser", srch_vfm_chart: "Gündəlik neft, su və qaz debitləri (VFM)",
     // Nova söhbət köməkçisi
     nova_name: "Nova", nova_title: "Nova - Sizin AI köməkçiniz", nova_sub: "Quyular, problemlər və nəticələr barədə soruşun", nova_new: "Yeni söhbət",
     nova_ph: "Novadan soruşun… (göndərmək üçün Enter)", nova_thinking: "Nova məlumatları yoxlayır…", nova_used: "Yoxlanıldı:",
@@ -425,6 +433,10 @@ window.I18N = {
     hr_day: "Gün", hr_daily: "Gündəlik dəyər", hr_shut: "dayandırılıb",
   },
   ru: {
+    // поиск в верхней панели
+    srch_ph: "Поиск графиков, страниц, скважин…", srch_none: "Ничего не найдено. Попробуйте другое слово, например horner, обводнённость или GL-03.",
+    srch_chart: "График", srch_card: "Карточка", srch_page: "Страница", srch_well: "Скважина", srch_nova_where: "Чат-помощник",
+    srch_sensor_chart: "Датчики: давления, температура, газлифт, штуцер", srch_vfm_chart: "Суточные дебиты нефти, воды и газа (VFM)",
     // Nova: чат-помощник
     nova_name: "Nova", nova_title: "Nova - ваш ИИ-помощник", nova_sub: "Спросите о скважинах, проблемах и результатах", nova_new: "Новый чат",
     nova_ph: "Спросите Nova… (Enter — отправить)", nova_thinking: "Nova проверяет данные…", nova_used: "Проверено:",
