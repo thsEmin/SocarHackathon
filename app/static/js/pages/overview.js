@@ -139,16 +139,32 @@
   const KEY = "pn.overview.range";
   try { const saved = JSON.parse(sessionStorage.getItem(KEY) || "null"); if (saved) { r0 = saved.r0; r1 = saved.r1; dsId = saved.ds; } } catch (e) { /* no storage */ }
 
+  // 1d mode: the "→" and the second date box hide, and a "Show today" button appears.
+  // The button is made here (not in the page HTML) so the page never breaks on an old cached layout.
+  const arrow = $("r-from").parentElement.querySelector(".arr");
+  const todayBtn = document.createElement("button");
+  todayBtn.type = "button"; todayBtn.className = "r-today"; todayBtn.hidden = true;
+  todayBtn.textContent = PN.t("rng_today");
+  $("r-to").after(todayBtn);
+
   function showRange() {
     const R = data.range;
     $("r-from").value = R.start; $("r-to").value = R.end;
     $("r-from").min = $("r-to").min = R.first; $("r-from").max = $("r-to").max = R.last;
     const total = Math.round((new Date(R.last) - new Date(R.first)) / 864e5) + 1;   // days the data covers
+    const single = R.start === R.end;             // 1d: one day, picked with one date box
+    if (arrow) arrow.hidden = single;
+    $("r-to").hidden = single;
+    todayBtn.hidden = !single;
+    todayBtn.textContent = PN.t("rng_today");    // follows the language switch
+    todayBtn.classList.toggle("on", single && R.start === R.last);
+    $("r-from").setAttribute("aria-label", single ? "Day" : "From");
     document.querySelectorAll("#r-quick button").forEach(b => {
       const n = +b.dataset.days;
       b.disabled = n > total;                     // e.g. 1 day of data: only 1d and "All" can be clicked
       b.title = b.disabled ? PN.t("rng_short") : "";
-      b.classList.toggle("on", n ? (R.end === R.last && R.start === addDays(R.last, -n + 1)) : (R.start === R.first && R.end === R.last));
+      b.classList.toggle("on", n === 1 ? single
+        : n ? (R.end === R.last && R.start === addDays(R.last, -n + 1)) : (R.start === R.first && R.end === R.last));
     });
   }
   function setRange(a, b) {
@@ -156,11 +172,20 @@
     try { sessionStorage.setItem(KEY, JSON.stringify({ r0, r1, ds: PN.state.ds })); } catch (e) { /* no storage */ }
     load();
   }
-  $("r-from").onchange = () => setRange($("r-from").value, $("r-to").value);
+  const isSingle = () => data && data.range.start === data.range.end;
+  $("r-from").onchange = () => isSingle()
+    ? setRange($("r-from").value, $("r-from").value)          // 1d: the one box picks the day
+    : setRange($("r-from").value, $("r-to").value);
   $("r-to").onchange = () => setRange($("r-from").value, $("r-to").value);
+  // "Show today": the latest day in the data (today's prediction)
+  todayBtn.onclick = () => { if (data) setRange(data.range.last, data.range.last); };
   document.querySelectorAll("#r-quick button").forEach(b => b.onclick = () => {
     if (b.disabled || !data) return;              // not loaded yet: the dates are not known
     const n = +b.dataset.days, last = data ? data.range.last : null;
+    if (n === 1) {                                // 1d: keep the day already chosen, else the latest day
+      const day = isSingle() ? data.range.start : last;
+      return setRange(day, day);
+    }
     n && last ? setRange(addDays(last, -n + 1), last) : setRange(null, null);
   });
 

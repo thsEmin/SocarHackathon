@@ -17,3 +17,6 @@ Thumbs.db
 
 # secrets (Nova API key)
 .env
+
+# hackathon score experiments (kept local)
+test_VFM_PTA/

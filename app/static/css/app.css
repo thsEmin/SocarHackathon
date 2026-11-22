@@ -75,6 +75,10 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .ctl-range .range-row { display: flex; align-items: center; gap: 6px; padding: 3px 6px 3px 12px; border-radius: 999px;
   background: rgba(9,13,22,.45); border: 1px solid rgba(255,255,255,.16); backdrop-filter: blur(8px); }
 .ctl-range .arr { color: var(--on-ink-2); font-size: 13px; }
+.ctl-range [hidden] { display: none !important; }
+.ctl-range .r-today { border: 0; border-radius: 999px; padding: 6px 12px; background: rgba(0,181,226,.18); color: #fff; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.ctl-range .r-today:hover { background: rgba(0,181,226,.32); }
+.ctl-range .r-today.on { background: #fff; color: var(--ink); }
 .hero input[type=date] { color-scheme: dark; background: transparent; border: 0; color: var(--on-ink); font-family: var(--mono); font-size: 13px; padding: 6px 4px; }
 .hero input[type=date]:focus { box-shadow: none; outline: 1px solid rgba(0,181,226,.6); border-radius: 6px; }
 .hero .seg { background: rgba(9,13,22,.45); border-color: rgba(255,255,255,.16); backdrop-filter: blur(8px); }
