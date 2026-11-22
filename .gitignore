@@ -23,3 +23,6 @@ test_VFM_PTA/
 
 # mentor-style test packs (large CSVs, rebuilt from Dataset/)
 test_packs/
+
+# raw sensor file, unzipped (git keeps the zipped copy Dataset/high_freq_data.zip)
+Dataset/high_freq_data.csv

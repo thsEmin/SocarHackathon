@@ -4,13 +4,12 @@ Virtual flow metering (VFM) + automatic pressure-transient analysis (PTA) for 10
 
 ## Get the code and data
 
-The 269 MB sensor file and the cleaned parquet file are stored with **Git LFS**:
-
 ```
 git clone https://github.com/thsEmin/SocarHackathon.git
 cd SocarHackathon
-git lfs pull
 ```
+
+Everything is a normal file (no Git LFS needed), so **Download ZIP** on GitHub works too. The 269 MB raw sensor file is stored zipped as `Dataset/high_freq_data.zip` (60 MB); the code reads the zip directly, and uses `Dataset/high_freq_data.csv` instead if you unzip it there.
 
 ## Open the app (PetroNova)
 

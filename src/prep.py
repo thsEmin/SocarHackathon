@@ -31,6 +31,13 @@ TEST_LABELS = ["oil_rate_stbd", "water_rate_stbd", "gas_rate_mscfd"]
 
 
 # ---------------------------------------------------------------- loading
+def raw_hf_path():
+    """The raw sensor file: Dataset/high_freq_data.csv if it was unzipped, otherwise the zipped
+    copy kept in git (Dataset/high_freq_data.zip, 60 MB instead of 269 MB; pandas reads it directly)."""
+    p = D / "high_freq_data.csv"
+    return p if p.exists() else D / "high_freq_data.zip"
+
+
 def load_choke(path=D / "choke_events(in).csv"):
     c = pd.read_csv(path)
     c["timestamp"] = pd.to_datetime(c.timestamp, format="mixed")
@@ -205,11 +212,11 @@ def shut_in_events(h, c):
 # ---------------------------------------------------------------- main
 def main():
     OUT.mkdir(exist_ok=True)
-    raw = pd.read_csv(D / "high_freq_data.csv")
+    raw = pd.read_csv(raw_hf_path())
     h, log = clean_hf(raw)
     c = load_choke()
     h = attach_choke(h, c)
-    h.to_parquet(OUT / "hf_clean.parquet", index=False) if _has_parquet() else None
+    h.to_parquet(OUT / "hf_clean.parquet", index=False, compression="zstd", compression_level=9) if _has_parquet() else None
 
     d = daily_table(h)
     t = test_table(h, load_static())

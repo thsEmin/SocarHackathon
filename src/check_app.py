@@ -108,7 +108,8 @@ check("APP: exported VFM Excel has the required columns",
       list(x.columns) == ["date", "well_name", "oil_rate_stbd", "water_rate_stbd", "gas_rate_mscfd"] and len(x) == len(pred))
 
 # upload round trip (small file, same pipeline)
-raw = pd.read_csv(ROOT / "Dataset" / "high_freq_data.csv", nrows=200000)
+hf_raw = ROOT / "Dataset" / "high_freq_data.csv"
+raw = pd.read_csv(hf_raw if hf_raw.exists() else hf_raw.with_suffix(".zip"), nrows=200000)
 sub = raw[raw.well_name == "GL-01"]
 r = c.post("/api/upload", data={"hf": (io.BytesIO(sub.to_csv(index=False).encode()), "t.csv")}, content_type="multipart/form-data")
 job = r.get_json()["job"]

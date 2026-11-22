@@ -1,5 +1,6 @@
 # not needed at run time (the app uses work/hf_clean.parquet)
 Dataset/high_freq_data.csv
+Dataset/high_freq_data.zip
 .git
 .claude
 uploads

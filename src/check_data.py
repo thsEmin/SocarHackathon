@@ -18,7 +18,7 @@ def check(name, ok, detail=""):
 
 
 # ------------------------------------------------------------ raw files untouched
-raw = pd.read_csv(D / "high_freq_data.csv")
+raw = pd.read_csv(D / "high_freq_data.csv" if (D / "high_freq_data.csv").exists() else D / "high_freq_data.zip")
 check("raw HF file still raw (has sentinels + duplicates)",
       (raw[SENS] == -999.25).sum().sum() == 7418 and raw.duplicated().sum() == 2513)
 
