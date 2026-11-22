@@ -71,8 +71,6 @@ This writes `VFM_daily_predictions.xlsx`, `PTA_results.xlsx` and, with `--tests`
 | 3 | Notebook with all cells run, showing our best results | `PetroNova_pipeline.ipynb` (repo root) |
 | 4 | Folder with all PTA plots | `outputs/pta_plots/` (one 4-panel figure per shut-in) |
 
-The pitch deck is `final_presentation.pptx`.
-
 ## Deliverables (`outputs/`)
 
 | File | Contents |
