@@ -66,7 +66,7 @@ This writes `VFM_daily_predictions.xlsx`, `PTA_results.xlsx` and, with `--tests`
 
 | # | Required | Where |
 |---|---|---|
-| 1 | Result files for Phase 1 (VFM) and Phase 2 (PTA), CSV or Excel | **`outputs/VFM_submission.xlsx`** and **`outputs/PTA_submission.xlsx`** (the files we submitted for scoring). Same numbers, with extra detail sheets: `outputs/VFM_daily_predictions.xlsx` and `outputs/PTA_results.xlsx` |
+| 1 | Result files for Phase 1 (VFM) and Phase 2 (PTA), CSV or Excel | **`outputs/VFM_submission.xlsx`** and **`outputs/PTA_submission.xlsx`** (the files we submitted for scoring; the same tables as CSV: `VFM_submission.csv`, `PTA_submission.csv`). Same numbers, with extra detail sheets: `outputs/VFM_daily_predictions.xlsx` and `outputs/PTA_results.xlsx` |
 | 2 | Trained model in `.pkl` format | `outputs/vfm_model.pkl` |
 | 3 | Notebook with all cells run, showing our best results | `PetroNova_pipeline.ipynb` (repo root) |
 | 4 | Folder with all PTA plots | `outputs/pta_plots/` (one 4-panel figure per shut-in) |
