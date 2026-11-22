@@ -1,6 +1,18 @@
 /* PetroNova texts. Azerbaijani technical terms should be proofread by the team's petroleum engineers. */
 window.I18N = {
   en: {
+    // Nova chat assistant
+    nova_name: "Nova", nova_title: "Nova - Your AI assistant", nova_sub: "Ask about your wells, problems and results", nova_new: "New chat",
+    nova_ph: "Ask Nova… (Enter to send)", nova_thinking: "Nova is checking the data…", nova_used: "Checked:",
+    nova_hello: "Hi, I'm Nova. Ask me about well rates, problems, PTA results, the VFM model or what-if scenarios. I answer from the dataset that is loaded in the app.",
+    nova_off: "Nova is not set up yet. Add ANTHROPIC_API_KEY to the .env file in the project folder and restart the app. The rest of PetroNova works without it.",
+    nova_q1: "Summarise the field status", nova_q2: "Which well has the biggest problem right now?", nova_q3: "How is the VFM model validated?",
+    nova_qp_well: "Summarise this well", nova_qp_pta: "What did the build-up test show for this well?", nova_qp_whatif: "What if I open the choke 5 points on this well?",
+    nova_qp_vfm: "How close is VFM to the well tests on this well?", nova_qp_sensors: "Any unusual sensor trends on this well?",
+    nova_e_api: "Nova could not answer.", nova_e_offline: "Nova needs an internet connection. Check the network and try again.",
+    nova_e_limit: "Too many questions in a short time. Please wait a few minutes.", nova_e_bad_key: "The API key was rejected. Check ANTHROPIC_API_KEY in the .env file.",
+    nova_e_no_credit: "The API account has no credit left. Add credit at console.anthropic.com.", nova_e_busy: "The AI service is busy. Try again in a minute.",
+    nova_e_refused: "Nova cannot help with this question.", nova_e_not_configured: "Nova is not set up yet: ANTHROPIC_API_KEY is missing.",
     brand_sub: "Well performance intelligence",
     nav_monitor: "Monitor", nav_analyse: "Analyse", nav_deliver: "Deliver",
     n_overview: "Overview", n_data: "Import", n_sensors: "Sensors", n_vfm: "VFM", n_whatif: "What-if", n_pta: "PTA", n_well: "Well", n_export: "Export",
@@ -141,7 +153,7 @@ window.I18N = {
     h_n_flag: "Wells needing attention", h_n_wells: "wells", h_n_perm: "Median permeability",
     h_num_note: "Numbers are calculated live from the selected dataset (SOCAR 2026 by default).",
     h_mod_eyebrow: "Modules", h_mod_title: "Everything an engineer needs, in one place",
-    h_cta_title: "See your field in one screen", h_acc_eyebrow: "Model results", h_acc_title: "Tested on well tests the model never saw", h_acc_sub: "Each well's last 2 tests were hidden, the model was trained on the earlier ones and then had to predict them. Error = average % the prediction misses by; lower is better.", h_acc_err: "error of the final model", h_acc_exam: "Exam: last 2 tests of each well hidden", vfm_model_moved: "Model accuracy and physics checks are now on the home page.", vfm_model_open: "Open model results",
+    h_cta_title: "See your field in one screen", h_acc_eyebrow: "Model results", h_acc_title: "Tested on well tests the model never saw", h_acc_sub: "Each well's last 2 tests were hidden, the model was trained on the earlier ones and then had to predict them. Error = average % the prediction misses by; lower is better.", h_acc_err: "error of the final model", h_acc_exam: "Exam: last 2 tests of each well hidden",
     h_g_soil: "Soil · sand", h_g_shale: "Shale", h_g_sand: "Sandstone", h_g_lime: "Limestone",
     h_g_cap: "Cap rock", h_g_res: "Oil reservoir", h_g_water: "Water zone",
     // problems page
@@ -205,6 +217,18 @@ window.I18N = {
     hr_day: "Day", hr_daily: "Daily value", hr_shut: "shut-in",
   },
   az: {
+    // Nova söhbət köməkçisi
+    nova_name: "Nova", nova_title: "Nova - Sizin AI köməkçiniz", nova_sub: "Quyular, problemlər və nəticələr barədə soruşun", nova_new: "Yeni söhbət",
+    nova_ph: "Novadan soruşun… (göndərmək üçün Enter)", nova_thinking: "Nova məlumatları yoxlayır…", nova_used: "Yoxlanıldı:",
+    nova_hello: "Salam, mən Novayam. Quyu debitləri, problemlər, PTA nəticələri, VFM modeli və ya \"what-if\" ssenariləri barədə soruşun. Cavabları tətbiqdə yüklənmiş məlumatlardan verirəm.",
+    nova_off: "Nova hələ qurulmayıb. Layihə qovluğundakı .env faylına ANTHROPIC_API_KEY əlavə edin və tətbiqi yenidən başladın. PetroNovanın qalan hissəsi onsuz da işləyir.",
+    nova_q1: "Yatağın vəziyyətini qısa izah et", nova_q2: "Hazırda hansı quyuda ən böyük problem var?", nova_q3: "VFM modeli necə yoxlanılıb?",
+    nova_qp_well: "Bu quyunu qısa izah et", nova_qp_pta: "Bu quyuda bərpa testi nə göstərdi?", nova_qp_whatif: "Bu quyuda ştuseri 5 bənd açsam nə olar?",
+    nova_qp_vfm: "Bu quyuda VFM quyu testlərinə nə qədər yaxındır?", nova_qp_sensors: "Bu quyuda sensorlarda qeyri-adi meyl varmı?",
+    nova_e_api: "Nova cavab verə bilmədi.", nova_e_offline: "Nova üçün internet bağlantısı lazımdır. Şəbəkəni yoxlayıb yenidən cəhd edin.",
+    nova_e_limit: "Qısa müddətdə çox sual verildi. Bir neçə dəqiqə gözləyin.", nova_e_bad_key: "API açarı qəbul edilmədi. .env faylında ANTHROPIC_API_KEY-i yoxlayın.",
+    nova_e_no_credit: "API hesabında kredit qalmayıb. console.anthropic.com saytında kredit əlavə edin.", nova_e_busy: "AI xidməti məşğuldur. Bir dəqiqədən sonra yenidən cəhd edin.",
+    nova_e_refused: "Nova bu suala kömək edə bilməz.", nova_e_not_configured: "Nova hələ qurulmayıb: ANTHROPIC_API_KEY yoxdur.",
     brand_sub: "Quyu məhsuldarlığı analitikası",
     nav_monitor: "Monitorinq", nav_analyse: "Təhlil", nav_deliver: "Nəticələr",
     n_overview: "İcmal", n_data: "İdxal", n_sensors: "Sensorlar", n_vfm: "VFM", n_whatif: "Ssenari", n_pta: "PTA", n_well: "Quyu", n_export: "İxrac",
@@ -337,7 +361,7 @@ window.I18N = {
     h_n_flag: "Diqqət tələb edən quyular", h_n_wells: "quyu", h_n_perm: "Median keçiricilik",
     h_num_note: "Rəqəmlər seçilmiş məlumat dəstindən canlı hesablanır (standart olaraq SOCAR 2026).",
     h_mod_eyebrow: "Modullar", h_mod_title: "Mühəndisə lazım olan hər şey bir yerdə",
-    h_cta_title: "Yatağınızı bir ekranda görün", h_acc_eyebrow: "Modelin nəticələri", h_acc_title: "Modelin heç görmədiyi quyu sınaqlarında yoxlanılıb", h_acc_sub: "Hər quyunun son 2 sınağı gizlədildi, model əvvəlki sınaqlarla öyrədildi, sonra onları proqnozlaşdırdı. Xəta = proqnozun orta hesabla neçə faiz yanılması; az olan yaxşıdır.", h_acc_err: "yekun modelin xətası", h_acc_exam: "İmtahan: hər quyunun son 2 sınağı gizli", vfm_model_moved: "Modelin dəqiqliyi və fiziki yoxlamalar indi ana səhifədədir.", vfm_model_open: "Modelin nəticələrini aç",
+    h_cta_title: "Yatağınızı bir ekranda görün", h_acc_eyebrow: "Modelin nəticələri", h_acc_title: "Modelin heç görmədiyi quyu sınaqlarında yoxlanılıb", h_acc_sub: "Hər quyunun son 2 sınağı gizlədildi, model əvvəlki sınaqlarla öyrədildi, sonra onları proqnozlaşdırdı. Xəta = proqnozun orta hesabla neçə faiz yanılması; az olan yaxşıdır.", h_acc_err: "yekun modelin xətası", h_acc_exam: "İmtahan: hər quyunun son 2 sınağı gizli",
     h_g_soil: "Torpaq · qum", h_g_shale: "Gil", h_g_sand: "Qumdaşı", h_g_lime: "Əhəngdaşı",
     h_g_cap: "Örtük süxur", h_g_res: "Neft layı", h_g_water: "Su zonası",
     // problems page
@@ -401,6 +425,18 @@ window.I18N = {
     hr_day: "Gün", hr_daily: "Gündəlik dəyər", hr_shut: "dayandırılıb",
   },
   ru: {
+    // Nova: чат-помощник
+    nova_name: "Nova", nova_title: "Nova - ваш ИИ-помощник", nova_sub: "Спросите о скважинах, проблемах и результатах", nova_new: "Новый чат",
+    nova_ph: "Спросите Nova… (Enter — отправить)", nova_thinking: "Nova проверяет данные…", nova_used: "Проверено:",
+    nova_hello: "Здравствуйте, я Nova. Спросите о дебитах скважин, проблемах, результатах ГДИС (PTA), модели VFM или сценариях «что если». Я отвечаю по данным, загруженным в приложение.",
+    nova_off: "Nova ещё не настроена. Добавьте ANTHROPIC_API_KEY в файл .env в папке проекта и перезапустите приложение. Остальная часть PetroNova работает и без этого.",
+    nova_q1: "Кратко опиши состояние месторождения", nova_q2: "На какой скважине сейчас самая серьёзная проблема?", nova_q3: "Как проверена модель VFM?",
+    nova_qp_well: "Кратко опиши эту скважину", nova_qp_pta: "Что показало КВД на этой скважине?", nova_qp_whatif: "Что будет, если открыть штуцер на 5 пунктов на этой скважине?",
+    nova_qp_vfm: "Насколько VFM близка к замерам на этой скважине?", nova_qp_sensors: "Есть ли необычные тренды датчиков на этой скважине?",
+    nova_e_api: "Nova не смогла ответить.", nova_e_offline: "Для Nova нужен интернет. Проверьте сеть и попробуйте снова.",
+    nova_e_limit: "Слишком много вопросов за короткое время. Подождите несколько минут.", nova_e_bad_key: "API-ключ отклонён. Проверьте ANTHROPIC_API_KEY в файле .env.",
+    nova_e_no_credit: "На API-аккаунте закончился кредит. Пополните его на console.anthropic.com.", nova_e_busy: "Сервис ИИ занят. Попробуйте через минуту.",
+    nova_e_refused: "Nova не может помочь с этим вопросом.", nova_e_not_configured: "Nova ещё не настроена: нет ANTHROPIC_API_KEY.",
     brand_sub: "Аналитика производительности скважин",
     nav_monitor: "Мониторинг", nav_analyse: "Анализ", nav_deliver: "Результаты",
     n_overview: "Обзор", n_data: "Импорт", n_sensors: "Датчики", n_vfm: "VFM", n_whatif: "Сценарии", n_pta: "ГДИС", n_well: "Скважина", n_export: "Экспорт",
@@ -541,7 +577,7 @@ window.I18N = {
     h_n_flag: "Скважины, требующие внимания", h_n_wells: "скважин", h_n_perm: "Медианная проницаемость",
     h_num_note: "Числа рассчитываются по выбранному набору данных (по умолчанию SOCAR 2026).",
     h_mod_eyebrow: "Модули", h_mod_title: "Всё, что нужно инженеру, в одном месте",
-    h_cta_title: "Всё месторождение на одном экране", h_acc_eyebrow: "Результаты модели", h_acc_title: "Проверено на замерах, которых модель не видела", h_acc_sub: "Последние 2 замера каждой скважины скрыли, модель обучили на более ранних и попросили их предсказать. Ошибка = средний % промаха прогноза; чем меньше, тем лучше.", h_acc_err: "ошибка итоговой модели", h_acc_exam: "Экзамен: скрыты последние 2 замера каждой скважины", vfm_model_moved: "Точность модели и физические проверки теперь на главной странице.", vfm_model_open: "Открыть результаты модели",
+    h_cta_title: "Всё месторождение на одном экране", h_acc_eyebrow: "Результаты модели", h_acc_title: "Проверено на замерах, которых модель не видела", h_acc_sub: "Последние 2 замера каждой скважины скрыли, модель обучили на более ранних и попросили их предсказать. Ошибка = средний % промаха прогноза; чем меньше, тем лучше.", h_acc_err: "ошибка итоговой модели", h_acc_exam: "Экзамен: скрыты последние 2 замера каждой скважины",
     h_g_soil: "Почва · песок", h_g_shale: "Глина", h_g_sand: "Песчаник", h_g_lime: "Известняк",
     h_g_cap: "Покрышка", h_g_res: "Нефтяной пласт", h_g_water: "Водоносная зона",
     // problems page

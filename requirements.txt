@@ -8,6 +8,9 @@ openpyxl==3.1.5
 pyarrow==25.0.1
 flask==3.1.3
 waitress==3.0.2
+# Nova chat assistant (needs internet + ANTHROPIC_API_KEY)
+anthropic==2.12.0
+python-dotenv==1.2.4
 # only needed to re-run the notebook
 notebook
 nbconvert
