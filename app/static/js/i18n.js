@@ -216,7 +216,7 @@ window.I18N = {
     u_az: "Azerbaijan", u_field: "Field", u_metric: "Metric", u_si: "SI",
     u_note: "Changes what you see on every page. Calculations and Excel exports stay in field units. Oil in tonnes uses 0.872 t/m³ (30.7 °API, well-test median).",
     // date range + hourly
-    rng_from: "From", rng_to: "To", rng_all: "All", rng_title: "Period",
+    rng_from: "From", rng_to: "To", rng_all: "All", rng_title: "Period", rng_today: "Show today",
     hr_title: "Hourly production on one day", hr_sub: "VFM run on hourly sensor averages; 24 hours add up to the daily value",
     hr_day: "Day", hr_daily: "Daily value", hr_shut: "shut-in",
   },
@@ -428,7 +428,7 @@ window.I18N = {
     u_az: "Azərbaycan", u_field: "Mədən", u_metric: "Metrik", u_si: "SI",
     u_note: "Bütün səhifələrdə göstərilən vahidləri dəyişir. Hesablamalar və Excel faylları mədən vahidlərində qalır. Neft tonla: 0,872 t/m³ (30,7 °API, quyu sınaqlarının medianı).",
     // date range + hourly
-    rng_from: "Başlanğıc", rng_to: "Son", rng_all: "Hamısı", rng_title: "Dövr",
+    rng_from: "Başlanğıc", rng_to: "Son", rng_all: "Hamısı", rng_title: "Dövr", rng_today: "Bu günü göstər",
     hr_title: "Bir gün ərzində saatlıq hasilat", hr_sub: "VFM saatlıq sensor ortalamaları ilə işləyir; 24 saatın cəmi gündəlik dəyərə bərabərdir",
     hr_day: "Gün", hr_daily: "Gündəlik dəyər", hr_shut: "dayandırılıb",
   },
@@ -648,7 +648,7 @@ window.I18N = {
     u_az: "Азербайджан", u_field: "Промысловые", u_metric: "Метрические", u_si: "СИ",
     u_note: "Меняет отображение на всех страницах. Расчёты и файлы Excel остаются в промысловых единицах. Нефть в тоннах: 0,872 т/м³ (30,7 °API, медиана замеров).",
     // date range + hourly
-    rng_from: "С", rng_to: "По", rng_all: "Все", rng_title: "Период",
+    rng_from: "С", rng_to: "По", rng_all: "Все", rng_title: "Период", rng_today: "Показать сегодня",
     hr_title: "Почасовая добыча за один день", hr_sub: "VFM по часовым средним датчиков; 24 часа в сумме дают суточное значение",
     hr_day: "День", hr_daily: "Суточное значение", hr_shut: "остановка",
   },
