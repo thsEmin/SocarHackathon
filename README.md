@@ -53,6 +53,27 @@ python run_all.py
 
 The raw files in `Dataset/` are never modified.
 
+## Predict a new period (for example the Oct-Dec scoring data)
+
+Use the trained model as it is, with no retraining:
+
+```
+python predict_new.py --hf high_freq_data.csv --choke choke_events.csv --tests well_tests.csv --out results
+```
+
+This writes `VFM_daily_predictions.xlsx`, `PTA_results.xlsx` and, with `--tests`, `well_test_check.csv` (predicted vs measured) into `results/`. It takes about 15 s for 3 months. In the app, the Data page does the same thing; the third box is for the optional well tests. **Do not** copy new files into `Dataset/` and run `run_all.py`: that retrains the model on the new period only and overwrites `work/`.
+
+## Deliverables checklist
+
+| # | Required | Where |
+|---|---|---|
+| 1 | Result files for Phase 1 (VFM) and Phase 2 (PTA), CSV or Excel | `outputs/VFM_daily_predictions.xlsx` (sheet `predictions`) and `outputs/PTA_results.xlsx` (sheet `results`) |
+| 2 | Trained model in `.pkl` format | `outputs/vfm_model.pkl` |
+| 3 | Notebook with all cells run, showing our best results | `PetroNova_pipeline.ipynb` (repo root) |
+| 4 | Folder with all PTA plots | `outputs/pta_plots/` (one 4-panel figure per shut-in) |
+
+The pitch deck is `final_presentation.pptx`.
+
 ## Deliverables (`outputs/`)
 
 | File | Contents |

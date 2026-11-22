@@ -10,13 +10,16 @@
       <label class="drop" id="drop-choke"><input type="file" id="f-choke" accept=".csv,.xlsx,.xls" hidden>
         <div style="font-weight:600" data-i18n="choke_file"></div><div class="dim" style="font-size:12px;margin-top:4px" data-i18n="choke_hint"></div>
         <div class="fname" id="n-choke" data-i18n="choose"></div></label>
+      <label class="drop" id="drop-tests"><input type="file" id="f-tests" accept=".csv,.xlsx,.xls" hidden>
+        <div style="font-weight:600" data-i18n="tests_file"></div><div class="dim" style="font-size:12px;margin-top:4px" data-i18n="tests_hint"></div>
+        <div class="fname" id="n-tests" data-i18n="choose"></div></label>
       <div style="display:flex;gap:10px;align-items:center">
         <button class="btn primary" id="go" data-icon="upload" disabled><span data-i18n="run_upload"></span></button>
         <span class="muted" id="stage"></span>
       </div>
       <div class="progress hidden" id="prog"><div></div></div>
       <div id="warn" class="muted" style="font-size:12.5px"></div>
-      <div id="done" class="hidden"><div class="dim" id="pta-count" style="margin-bottom:8px"></div><button class="btn" id="open-ds" data-icon="arrow"><span data-i18n="open_vfm"></span></button></div>
+      <div id="done" class="hidden"><div class="dim" id="pta-count" style="margin-bottom:8px"></div><div id="acc" style="margin-bottom:10px"></div><button class="btn" id="open-ds" data-icon="arrow"><span data-i18n="open_vfm"></span></button></div>
     </div>
   </div>
 </section>

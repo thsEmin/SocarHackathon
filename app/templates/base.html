@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  {% set titles = {'whatif': 'What-if', 'pta': 'PTA', 'vfm': 'VFM', 'data': 'Import', 'notfound': 'Page not found'} %}
+  {% set titles = {'whatif': 'Simulation', 'pta': 'PTA', 'vfm': 'VFM', 'data': 'Import', 'notfound': 'Page not found'} %}
   <title>PetroNova · {{ titles.get(page, page|capitalize) }}</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/socar-favicon.png') }}?v=2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">

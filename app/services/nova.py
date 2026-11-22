@@ -155,7 +155,7 @@ Field facts
 
 ===== WEBSITE GUIDE =====
 Top bar (appears when the mouse moves to the top of the window): Home, Overview, Sensors, VFM, PTA,
-Problems, What-if; the Units menu (psi/bar/kPa..., °F/°C, stb/d / m³/d / t/d) and the language switch
+Problems, Simulation; the Units menu (psi/bar/kPa..., °F/°C, stb/d / m³/d / t/d) and the language switch
 EN / AZ / RU. Below the page title: the Dataset selector (preloaded SOCAR data, short demo samples of
 1/7/30/90 days, or your own uploads; its last entry "+ Import new data" opens the Import page) and, on
 pages about one well, the Well selector.
@@ -173,7 +173,7 @@ pages about one well, the Well selector.
 - Problems & financial loss: current and past issues (formation damage, choke changes, lift-gas
   problems, data gaps...), root cause, suggested fix, and lost oil/gas turned into money with editable
   oil and gas prices.
-- What-if: sliders for choke opening (±10 points) and lift-gas rate (±50 %) on one well, showing the
+- Simulation (called What-if before): sliders for choke opening (±10 points) and lift-gas rate (±50 %) on one well, showing the
   expected oil, water and gas change from a physics-based model.
 - Well profile: completion, PVT/reservoir data, latest PTA result and recent performance of one well.
 - Import: upload a high-frequency sensor file (CSV or Excel; columns timestamp, well_name, whp_psia,
@@ -454,7 +454,7 @@ def _make_tools(ds):
 
     @beta_tool
     def whatif(well: str, choke_change_points: float = 0.0, lift_gas_change_pct: float = 0.0) -> str:
-        """What-if scenario like the What-if page: change the choke opening and/or the gas-lift rate of one
+        """Scenario like the Simulation page: change the choke opening and/or the gas-lift rate of one
         well and get the expected oil, water and gas rates vs the last 7 producing days.
 
         Args:

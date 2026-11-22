@@ -167,7 +167,7 @@ def create_app():
     @app.post("/api/upload")
     def api_upload():
         files = {}
-        for role in ("hf", "choke"):
+        for role in ("hf", "choke", "tests"):
             f = request.files.get(role)
             if f and f.filename:
                 files[role] = (f.filename, f.read())

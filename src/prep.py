@@ -125,9 +125,20 @@ def daily_table(h):
     return add_derived(d)
 
 
-def test_table(h, static):
-    t = pd.read_csv(D / "well_tests.csv", parse_dates=["test_start", "test_end"])
+TEST_REQUIRED = ["well_name", "test_start", "test_end"] + TEST_LABELS
+# columns repair_labels needs; an uploaded test sheet without them is used as it is (no repair)
+REPAIR_COLS = ["liquid_rate_stbd", "water_cut_pct", "gor_scf_stb", "glr_scf_stb", "gas_lift_rate_mscfd"]
+
+
+def test_table(h, static, t=None):
+    """t: a well-test table (e.g. uploaded); default reads Dataset/well_tests.csv."""
+    if t is None:
+        t = pd.read_csv(D / "well_tests.csv")
+    t = t.copy()
+    for c in ("test_start", "test_end"):
+        t[c] = pd.to_datetime(t[c], format="mixed")
     t = t.drop_duplicates().sort_values(["well_name", "test_start"]).reset_index(drop=True)
+    can_repair = set(REPAIR_COLS) <= set(t.columns)
     # keep the test-sheet sensor values for reference, but features come from cleaned HF data
     t = t.rename(columns={c: f"sheet_{c}" for c in SENS})
     feats = []
@@ -138,7 +149,11 @@ def test_table(h, static):
     t["date"] = t.test_start.dt.floor("D")
     t = add_derived(t)
 
-    t = repair_labels(t)
+    if can_repair:
+        t = repair_labels(t)
+    else:
+        for c in TEST_LABELS:
+            t[f"bad_{c.split('_')[0]}"] = ~(t[c] > 0) if c == "oil_rate_stbd" else ~(t[c] >= 0)
     t["test_during_shut_in"] = t.shut_frac > 0
     return t.merge(static, on="well_name", how="left", validate="many_to_one")
 
